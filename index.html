@@ -37,27 +37,6 @@
             appleLink.rel = 'apple-touch-icon';
             appleLink.href = iconUrl;
             document.head.appendChild(appleLink);
-
-            const manifest = {
-                "name": "План тренировок",
-                "short_name": "План тренировок",
-                "display": "standalone",
-                "background_color": "#f8fafc",
-                "theme_color": "#0d9488",
-                "icons": [
-                    {
-                        "src": iconUrl,
-                        "sizes": "512x512",
-                        "type": "image/png",
-                        "purpose": "any maskable"
-                    }
-                ]
-            };
-            const manifestStr = 'data:application/manifest+json;base64,' + btoa(JSON.stringify(manifest));
-            const manifestLink = document.createElement('link');
-            manifestLink.rel = 'manifest';
-            manifestLink.href = manifestStr;
-            document.head.appendChild(manifestLink);
         })();
     </script>
     
@@ -87,37 +66,38 @@
         }
         .safe-pb { padding-bottom: env(safe-area-inset-bottom, 2rem); }
         
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        input[type="number"] { -moz-appearance: textfield; }
         input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Анимация пульсации для таймера */
+        @keyframes timerPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
         }
+        .timer-done { animation: timerPulse 1s infinite; background-color: #ef4444 !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 antialiased selection:bg-teal-200 dark:selection:bg-teal-900">
 
     <header class="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 relative">
-            
             <div class="absolute right-4 top-2 sm:right-6 z-30">
                 <button id="theme-toggle" class="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none touch-manipulation shadow-sm">
                     <span id="theme-icon-light" class="block dark:hidden text-lg leading-none">🌙</span>
                     <span id="theme-icon-dark" class="hidden dark:block text-lg leading-none">☀️</span>
                 </button>
             </div>
-
             <nav class="flex overflow-x-auto no-scrollbar space-x-6 pb-1 mt-1 pr-16 sm:pr-0 -mx-4 px-4 sm:mx-0 sm:px-0" id="main-nav">
                 <button class="pb-2 whitespace-nowrap tab-active transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="push">День 1: Толкай</button>
                 <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="pull">День 2: Тяни</button>
-                <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="targets">Прогресс 📈</button>
+                <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="targets">Прогресс</button>
             </nav>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20 safe-pb">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-24 safe-pb relative">
         <div id="views-container" class="relative min-h-[400px]">
             
             <div id="push" class="view-section fade-in">
@@ -125,7 +105,6 @@
                     <button id="push-btn-A" onclick="setAllVariant('push', false, 'push-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg shadow-sm bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 transition-all duration-300 touch-manipulation">Вариант А</button>
                     <button id="push-btn-B" onclick="setAllVariant('push', true, 'push-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Вариант Б</button>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="push-grid"></div>
             </div>
 
@@ -134,7 +113,6 @@
                     <button id="pull-btn-A" onclick="setAllVariant('pull', false, 'pull-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg shadow-sm bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 transition-all duration-300 touch-manipulation">Вариант А</button>
                     <button id="pull-btn-B" onclick="setAllVariant('pull', true, 'pull-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Вариант Б</button>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="pull-grid"></div>
             </div>
 
@@ -143,7 +121,6 @@
                     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Живой график прогресса</h3>
                     <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">График автоматически подтягивает веса из твоих записей в карточках.</p>
                 </div>
-                
                 <div class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-6 transition-colors duration-300">
                     <div class="chart-container">
                         <canvas id="progressChart"></canvas>
@@ -153,19 +130,65 @@
         </div>
     </main>
 
+    <div id="timer-widget" class="fixed bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2 transition-all duration-300 translate-y-0">
+        <div id="timer-controls" class="hidden bg-slate-800 dark:bg-slate-100 rounded-full shadow-lg p-1.5 flex items-center gap-1">
+            <button onclick="adjustTimer(-10)" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-700 font-bold active:bg-slate-700 dark:active:bg-slate-300 touch-manipulation">-10</button>
+            <div id="timer-display" class="font-mono text-xl font-bold px-2 text-white dark:text-slate-900 w-16 text-center">01:30</div>
+            <button onclick="adjustTimer(30)" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-700 font-bold active:bg-slate-700 dark:active:bg-slate-300 touch-manipulation">+30</button>
+            <button onclick="stopTimer()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-300 flex items-center justify-center text-red-400 dark:text-red-500 font-bold active:scale-95 touch-manipulation">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z" clip-rule="evenodd" /></svg>
+            </button>
+        </div>
+        <button id="timer-toggle-btn" onclick="toggleTimer()" class="w-14 h-14 bg-teal-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-teal-500 transition-all active:scale-90 touch-manipulation border-2 border-white dark:border-slate-800">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </button>
+    </div>
+
+    <div id="history-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="history-modal-content">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 dark:text-white" id="history-title">История весов</h3>
+                <button onclick="closeHistory()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full active:bg-slate-100 dark:active:bg-slate-700 transition-colors focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-4 max-h-[60vh] overflow-y-auto no-scrollbar" id="history-list">
+                </div>
+        </div>
+    </div>
+
     <script>
+        // Обновленная логика хранилища (добавлена поддержка истории)
         const Storage = {
             getKey: (exId, variantIndex) => `freeride_${exId}_${variantIndex}`,
-            save: (exId, variantIndex, field, value) => {
+            
+            saveWeight: (exId, variantIndex, newWeight) => {
                 const key = Storage.getKey(exId, variantIndex);
-                let data = JSON.parse(localStorage.getItem(key) || '{"weight":""}');
-                data[field] = value;
+                let data = JSON.parse(localStorage.getItem(key) || '{"weight":"", "history":[]}');
+                
+                // Проверяем, изменился ли вес, чтобы не плодить пустые или дублирующиеся записи
+                if (newWeight !== "" && newWeight !== data.weight) {
+                    const today = new Date().toLocaleDateString('ru-RU');
+                    if (!data.history) data.history = [];
+                    
+                    const lastEntry = data.history[data.history.length - 1];
+                    // Если сегодня уже вводили вес, обновляем последнюю запись, иначе добавляем новую
+                    if (lastEntry && lastEntry.date === today) {
+                        lastEntry.weight = newWeight;
+                    } else {
+                        data.history.push({ date: today, weight: newWeight });
+                    }
+                }
+                
+                data.weight = newWeight;
                 localStorage.setItem(key, JSON.stringify(data));
                 if (myChartInstance) renderChart(); 
             },
+            
             load: (exId, variantIndex) => {
-                const key = Storage.getKey(exId, variantIndex);
-                return JSON.parse(localStorage.getItem(key) || '{"weight":""}');
+                return JSON.parse(localStorage.getItem(key = Storage.getKey(exId, variantIndex)) || '{"weight":"", "history":[]}');
             }
         };
 
@@ -202,23 +225,19 @@
                 
                 const isAlt = exerciseState[ex.id];
                 const currentEx = isAlt ? ex.alt : ex.main;
-                const variantIndex = isAlt ? 'B' : 'A'; // Для хранилища
-                const variantLabel = isAlt ? 'Б' : 'А'; // Для отображения
+                const variantIndex = isAlt ? 'B' : 'A'; 
+                const variantLabel = isAlt ? 'Б' : 'А'; 
                 const savedData = Storage.load(ex.id, variantIndex);
                 
                 const cardBorder = isAlt ? 'border-amber-200 dark:border-amber-700/50' : 'border-slate-200 dark:border-slate-700';
                 const tagColor = isAlt ? 'text-amber-700 dark:text-amber-500' : 'text-teal-700 dark:text-teal-400';
                 const variantBadgeClass = isAlt ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
                 
-                const swapIcon = `
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
-                `;
+                const swapIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>`;
+                const historyIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
 
                 const cardHtml = `
                     <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border ${cardBorder} flex flex-col h-full transition-colors duration-300 relative group">
-                        
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex flex-col gap-1.5">
                                 <span class="text-[10px] md:text-xs font-black uppercase tracking-wider ${tagColor}">${ex.muscle}</span>
@@ -234,7 +253,7 @@
                             <p class="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed transition-colors">${currentEx.desc}</p>
                         </div>
                         
-                        <div class="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 transition-colors mt-auto">
+                        <div class="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 transition-colors mt-auto relative">
                             <div class="flex justify-between items-center mb-3">
                                 <div class="flex flex-col">
                                     <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Сеты</span>
@@ -246,11 +265,16 @@
                                 </div>
                             </div>
                             
-                            <div class="relative flex items-center mt-1">
-                                <input type="number" inputmode="decimal" placeholder="Запиши рабочий вес" value="${savedData.weight}" 
-                                       oninput="Storage.save('${ex.id}', '${variantIndex}', 'weight', this.value)"
-                                       class="w-full py-2.5 pl-3 pr-8 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm">
-                                <span class="absolute right-3 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">кг</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="relative flex-grow">
+                                    <input type="number" inputmode="decimal" placeholder="Рабочий вес" value="${savedData.weight}" 
+                                           onchange="Storage.saveWeight('${ex.id}', '${variantIndex}', this.value)"
+                                           class="w-full py-2.5 pl-3 pr-8 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm">
+                                    <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">кг</span>
+                                </div>
+                                <button onclick="openHistory('${ex.id}', '${variantIndex}', '${currentEx.name.replace(/'/g, "\\'")}')" class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors shadow-sm focus:outline-none">
+                                    ${historyIcon}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -259,23 +283,130 @@
             });
         }
 
+        /* ----- ЛОГИКА ИСТОРИИ ----- */
+        function openHistory(exId, variantIndex, exName) {
+            if (navigator.vibrate) navigator.vibrate(20);
+            const data = Storage.load(exId, variantIndex);
+            const listContainer = document.getElementById('history-list');
+            document.getElementById('history-title').innerText = exName;
+            
+            listContainer.innerHTML = '';
+            if (!data.history || data.history.length === 0) {
+                listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый вес!</div>';
+            } else {
+                // Показываем в обратном порядке (новые сверху)
+                const reversedHistory = [...data.history].reverse();
+                reversedHistory.forEach(item => {
+                    listContainer.insertAdjacentHTML('beforeend', `
+                        <div class="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-700/50 last:border-0">
+                            <span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} кг</span>
+                        </div>
+                    `);
+                });
+            }
+
+            const modal = document.getElementById('history-modal');
+            const modalContent = document.getElementById('history-modal-content');
+            modal.classList.remove('hidden');
+            // Небольшая задержка для анимации
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeHistory() {
+            const modal = document.getElementById('history-modal');
+            const modalContent = document.getElementById('history-modal-content');
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        /* ----- ЛОГИКА ТАЙМЕРА ----- */
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isTimerActive = false;
+
+        function updateTimerUI() {
+            const min = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const sec = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${min}:${sec}`;
+            
+            const btn = document.getElementById('timer-toggle-btn');
+            if (timerSeconds === 0 && isTimerActive) {
+                btn.classList.add('timer-done');
+                if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]); // Паттерн вибрации
+            } else {
+                btn.classList.remove('timer-done');
+            }
+        }
+
+        function toggleTimer() {
+            if (navigator.vibrate) navigator.vibrate(20);
+            const controls = document.getElementById('timer-controls');
+            if (controls.classList.contains('hidden')) {
+                controls.classList.remove('hidden');
+                // Если таймер не запущен, ставим дефолтные 90 секунд
+                if (!isTimerActive && timerSeconds === 0) {
+                    timerSeconds = 90;
+                    isTimerActive = true;
+                    updateTimerUI();
+                    timerInterval = setInterval(() => {
+                        if (timerSeconds > 0) {
+                            timerSeconds--;
+                            updateTimerUI();
+                        }
+                    }, 1000);
+                }
+            } else {
+                controls.classList.add('hidden');
+            }
+        }
+
+        function adjustTimer(amount) {
+            if (navigator.vibrate) navigator.vibrate(10);
+            timerSeconds += amount;
+            if (timerSeconds < 0) timerSeconds = 0;
+            if (timerSeconds > 0 && timerSeconds === amount && !isTimerActive) {
+                // Если таймер был на нуле и мы добавили время, перезапускаем
+                isTimerActive = true;
+                timerInterval = setInterval(() => {
+                    if (timerSeconds > 0) {
+                        timerSeconds--;
+                        updateTimerUI();
+                    }
+                }, 1000);
+            }
+            updateTimerUI();
+        }
+
+        function stopTimer() {
+            if (navigator.vibrate) navigator.vibrate(20);
+            clearInterval(timerInterval);
+            timerSeconds = 0;
+            isTimerActive = false;
+            updateTimerUI();
+            document.getElementById('timer-controls').classList.add('hidden');
+            document.getElementById('timer-toggle-btn').classList.remove('timer-done');
+        }
+
+        /* ----- UI И НАВИГАЦИЯ ----- */
         function updateVariantToggleUI(dayId, isAlt) {
             const btnA = document.getElementById(`${dayId}-btn-A`);
             const btnB = document.getElementById(`${dayId}-btn-B`);
-            
             const activeClasses = ['bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-teal-600', 'dark:text-teal-400'];
             const inactiveClasses = ['text-slate-500', 'dark:text-slate-400', 'hover:text-slate-700', 'dark:hover:text-slate-200'];
 
             if (!isAlt) {
-                btnA.classList.add(...activeClasses);
-                btnA.classList.remove(...inactiveClasses);
-                btnB.classList.add(...inactiveClasses);
-                btnB.classList.remove(...activeClasses);
+                btnA.classList.add(...activeClasses); btnA.classList.remove(...inactiveClasses);
+                btnB.classList.add(...inactiveClasses); btnB.classList.remove(...activeClasses);
             } else {
-                btnB.classList.add(...activeClasses);
-                btnB.classList.remove(...inactiveClasses);
-                btnA.classList.add(...inactiveClasses);
-                btnA.classList.remove(...activeClasses);
+                btnB.classList.add(...activeClasses); btnB.classList.remove(...inactiveClasses);
+                btnA.classList.add(...inactiveClasses); btnA.classList.remove(...activeClasses);
             }
         }
 
@@ -301,11 +432,9 @@
                 if (navigator.vibrate) navigator.vibrate(20);
 
                 navButtons.forEach(b => {
-                    b.classList.remove('tab-active');
-                    b.classList.add('tab-inactive');
+                    b.classList.remove('tab-active'); b.classList.add('tab-inactive');
                 });
-                btn.classList.remove('tab-inactive');
-                btn.classList.add('tab-active');
+                btn.classList.remove('tab-inactive'); btn.classList.add('tab-active');
 
                 const btnCenter = btn.offsetLeft + (btn.offsetWidth / 2);
                 const navCenter = navContainer.offsetWidth / 2;
@@ -336,54 +465,22 @@
             const data = {
                 labels: ['Жим Ногами', 'Жим Гантелей', 'Ягодичный Мост', 'Тяга (упор)'],
                 datasets: [
-                    {
-                        label: 'Твой рабочий вес (кг)',
-                        data: [currentLeg, currentBench, currentHip, currentRow],
-                        backgroundColor: isDark ? '#475569' : '#cbd5e1', 
-                        borderRadius: 4,
-                        barPercentage: 0.6,
-                        categoryPercentage: 0.8
-                    },
-                    {
-                        label: 'Цель Эксперта (кг)',
-                        data: [150, 50, 110, 45], 
-                        backgroundColor: isDark ? '#2dd4bf' : '#0d9488', 
-                        borderRadius: 4,
-                        barPercentage: 0.6,
-                        categoryPercentage: 0.8
-                    }
+                    { label: 'Твой рабочий вес (кг)', data: [currentLeg, currentBench, currentHip, currentRow], backgroundColor: isDark ? '#475569' : '#cbd5e1', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 },
+                    { label: 'Цель Эксперта (кг)', data: [150, 50, 110, 45], backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }
                 ]
             };
 
             const config = {
-                type: 'bar',
-                data: data,
+                type: 'bar', data: data,
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
+                    responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { 
-                            position: 'top', 
-                            labels: { color: isDark ? '#cbd5e1' : '#475569', font: { family: "'Inter', sans-serif", size: 11 }, boxWidth: 10 } 
-                        },
-                        tooltip: {
-                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
-                            titleColor: '#f8fafc', bodyColor: '#f8fafc',
-                            titleFont: { family: "'Inter', sans-serif", size: 12 },
-                            padding: 10, cornerRadius: 8
-                        }
+                        legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569', font: { family: "'Inter', sans-serif", size: 11 }, boxWidth: 10 } },
+                        tooltip: { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', titleFont: { family: "'Inter', sans-serif", size: 12 }, padding: 10, cornerRadius: 8 }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false },
-                            ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 } }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 }, maxRotation: 45, minRotation: 0 }
-                        }
+                        y: { beginAtZero: true, grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 } } },
+                        x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 }, maxRotation: 45, minRotation: 0 } }
                     },
                     animation: { duration: 500, easing: 'easeOutQuart' }
                 }
@@ -409,6 +506,11 @@
             }
             renderCards('push', 'push-grid');
             renderCards('pull', 'pull-grid');
+        });
+
+        // Закрытие модального окна при клике вне его
+        document.getElementById('history-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeHistory();
         });
 
     </script>
