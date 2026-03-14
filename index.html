@@ -17,11 +17,11 @@
             canvas.height = size;
             const ctx = canvas.getContext('2d');
 
-            // Рисуем фон (Teal 600), чтобы иконка была полноцветной
+            // Рисуем фон
             ctx.fillStyle = '#0d9488';
             ctx.fillRect(0, 0, size, size);
             
-            // Рисуем логотип (белая буква T)
+            // Рисуем логотип
             ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -30,7 +30,6 @@
             
             const iconUrl = canvas.toDataURL('image/png');
 
-            // Устанавливаем иконку для браузера и Apple
             const link = document.createElement('link');
             link.rel = 'icon';
             link.href = iconUrl;
@@ -41,7 +40,6 @@
             appleLink.href = iconUrl;
             document.head.appendChild(appleLink);
 
-            // Генерируем манифест динамически
             const manifest = {
                 "name": "План тренировок",
                 "short_name": "План тренировок",
@@ -104,17 +102,16 @@
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 antialiased selection:bg-teal-200 dark:selection:bg-teal-900">
 
     <header class="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-3">
-                    <button id="theme-toggle" class="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none touch-manipulation">
-                        <span id="theme-icon-light" class="block dark:hidden text-lg leading-none">🌙</span>
-                        <span id="theme-icon-dark" class="hidden dark:block text-lg leading-none">☀️</span>
-                    </button>
-                </div>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 relative">
+            
+            <div class="absolute right-4 top-2 sm:right-6 z-30">
+                <button id="theme-toggle" class="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none touch-manipulation shadow-sm">
+                    <span id="theme-icon-light" class="block dark:hidden text-lg leading-none">🌙</span>
+                    <span id="theme-icon-dark" class="hidden dark:block text-lg leading-none">☀️</span>
+                </button>
             </div>
 
-            <nav class="flex overflow-x-auto no-scrollbar space-x-6 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0" id="main-nav">
+            <nav class="flex overflow-x-auto no-scrollbar space-x-6 pb-1 mt-1 pr-16 sm:pr-0 -mx-4 px-4 sm:mx-0 sm:px-0" id="main-nav">
                 <button class="pb-2 whitespace-nowrap tab-active transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="push">День 1: Толкай</button>
                 <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="pull">День 2: Тяни</button>
                 <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="targets">Прогресс 📈</button>
@@ -126,22 +123,18 @@
         <div id="views-container" class="relative min-h-[400px]">
             
             <div id="push" class="view-section fade-in">
-                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-5 flex justify-between items-center gap-3 transition-colors duration-300">
-                    <div class="flex gap-2">
-                        <button onclick="setAllBlock('push', false, 'push-grid')" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок А</button>
-                        <button onclick="setAllBlock('push', true, 'push-grid')" class="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок Б</button>
-                    </div>
+                <div class="w-full flex bg-slate-200/70 dark:bg-slate-800 p-1 rounded-xl mb-5 border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+                    <button id="push-btn-A" onclick="setAllBlock('push', false, 'push-grid')" class="flex-1 py-2 text-sm md:text-base font-bold rounded-lg shadow-sm bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 transition-all duration-300 touch-manipulation">Блок А</button>
+                    <button id="push-btn-B" onclick="setAllBlock('push', true, 'push-grid')" class="flex-1 py-2 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Блок Б</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="push-grid"></div>
             </div>
 
             <div id="pull" class="view-section hidden fade-in">
-                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-5 flex justify-between items-center gap-3 transition-colors duration-300">
-                    <div class="flex gap-2">
-                        <button onclick="setAllBlock('pull', false, 'pull-grid')" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок А</button>
-                        <button onclick="setAllBlock('pull', true, 'pull-grid')" class="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок Б</button>
-                    </div>
+                <div class="w-full flex bg-slate-200/70 dark:bg-slate-800 p-1 rounded-xl mb-5 border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+                    <button id="pull-btn-A" onclick="setAllBlock('pull', false, 'pull-grid')" class="flex-1 py-2 text-sm md:text-base font-bold rounded-lg shadow-sm bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 transition-all duration-300 touch-manipulation">Блок А</button>
+                    <button id="pull-btn-B" onclick="setAllBlock('pull', true, 'pull-grid')" class="flex-1 py-2 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Блок Б</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="pull-grid"></div>
@@ -171,7 +164,7 @@
                 let data = JSON.parse(localStorage.getItem(key) || '{"weight":""}');
                 data[field] = value;
                 localStorage.setItem(key, JSON.stringify(data));
-                if (myChartInstance) renderChart(); // Update chart dynamically
+                if (myChartInstance) renderChart(); 
             },
             load: (exId, blockIndex) => {
                 const key = Storage.getKey(exId, blockIndex);
@@ -181,50 +174,22 @@
 
         const workoutData = {
             push: [
-                { id: "pu_1", muscle: "Квадрицепс (База)",
-                  main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени", sets: "4х8-12", target: "150" },
-                  alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу", sets: "3х10-12", target: "70" } },
-                { id: "pu_2", muscle: "Квадрицепс / Баланс",
-                  main: { name: "Болгарский сплит-присед", desc: "Гантели в опущенных руках", sets: "3х8-10", target: "17.5" },
-                  alt:  { name: "Выпады назад с гантелями", desc: "Щадящий вариант для коленей", sets: "3х10-12", target: "20" } },
-                { id: "pu_3", muscle: "Икры (Контроль лыжи)",
-                  main: { name: "Жим носками в станке", desc: "Прямые колени. Полная растяжка", sets: "4х15-20", target: "100" },
-                  alt:  { name: "Подъемы на носки сидя", desc: "Прокачивает камбаловидную мышцу", sets: "4х15-20", target: "40" } },
-                { id: "pu_4", muscle: "Грудь (Толкающий верх)",
-                  main: { name: "Жим гантелей лежа", desc: "Безопасная траектория для плеч", sets: "4х8-10", target: "25" },
-                  alt:  { name: "Жим гантелей (угол 30°)", desc: "Акцент на визуальную ширину", sets: "3х10-12", target: "22.5" } },
-                { id: "pu_5", muscle: "Плечи (Средняя дельта)",
-                  main: { name: "Махи гантелями СИДЯ", desc: "Сидя исключаем раскачку поясницы", sets: "3х12-15", target: "12.5" },
-                  alt:  { name: "Отведения на нижнем блоке", desc: "Постоянное напряжение дельты", sets: "3х12-15", target: "15" } },
-                { id: "pu_6", muscle: "Трицепс (Руки)",
-                  main: { name: "Разгибания на блоке", desc: "Локти прижаты", sets: "3х12-15", target: "30" },
-                  alt:  { name: "Французский жим гантелями", desc: "Лежа на скамье", sets: "3х10-12", target: "12" } },
-                { id: "pu_7", muscle: "Кор (Антиразгибание)",
-                  main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы", sets: "3х60 сек", target: "60" },
-                  alt:  { name: "Мертвый жук (Dead Bug)", desc: "Поясница ВЖАТА в пол", sets: "3х20", target: "10" } }
+                { id: "pu_1", muscle: "Квадрицепс (База)", main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени", sets: "4х8-12", target: "150" }, alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу", sets: "3х10-12", target: "70" } },
+                { id: "pu_2", muscle: "Квадрицепс / Баланс", main: { name: "Болгарский сплит-присед", desc: "Гантели в опущенных руках", sets: "3х8-10", target: "17.5" }, alt:  { name: "Выпады назад с гантелями", desc: "Щадящий вариант для коленей", sets: "3х10-12", target: "20" } },
+                { id: "pu_3", muscle: "Икры (Контроль лыжи)", main: { name: "Жим носками в станке", desc: "Прямые колени. Полная растяжка", sets: "4х15-20", target: "100" }, alt:  { name: "Подъемы на носки сидя", desc: "Прокачивает камбаловидную мышцу", sets: "4х15-20", target: "40" } },
+                { id: "pu_4", muscle: "Грудь (Толкающий верх)", main: { name: "Жим гантелей лежа", desc: "Безопасная траектория для плеч", sets: "4х8-10", target: "25" }, alt:  { name: "Жим гантелей (угол 30°)", desc: "Акцент на визуальную ширину", sets: "3х10-12", target: "22.5" } },
+                { id: "pu_5", muscle: "Плечи (Средняя дельта)", main: { name: "Махи гантелями СИДЯ", desc: "Сидя исключаем раскачку поясницы", sets: "3х12-15", target: "12.5" }, alt:  { name: "Отведения на нижнем блоке", desc: "Постоянное напряжение дельты", sets: "3х12-15", target: "15" } },
+                { id: "pu_6", muscle: "Трицепс (Руки)", main: { name: "Разгибания на блоке", desc: "Локти прижаты", sets: "3х12-15", target: "30" }, alt:  { name: "Французский жим гантелями", desc: "Лежа на скамье", sets: "3х10-12", target: "12" } },
+                { id: "pu_7", muscle: "Кор (Антиразгибание)", main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы", sets: "3х60 сек", target: "60" }, alt:  { name: "Мертвый жук (Dead Bug)", desc: "Поясница ВЖАТА в пол", sets: "3х20", target: "10" } }
             ],
             pull: [
-                { id: "pl_1", muscle: "Ягодицы (База/Взрыв)",
-                  main: { name: "Ягодичный мост (Hip Thrust)", desc: "Мощный толчок тазом вверх", sets: "4х8-12", target: "110" },
-                  alt:  { name: "Тяга блока между ног", desc: "Наклон с прямой спиной", sets: "3х12-15", target: "50" } },
-                { id: "pl_2", muscle: "Бицепс бедра (Защита ПКС)",
-                  main: { name: "Сгибания ног лежа", desc: "Изолирует заднюю поверхность бедра", sets: "3х12-15", target: "50" },
-                  alt:  { name: "Сгибания ног сидя", desc: "Меньше движения в поясницы", sets: "3х12-15", target: "55" } },
-                { id: "pl_3", muscle: "Спина (Горизонталь)",
-                  main: { name: "Тяга гантелей (упор грудью)", desc: "Снятие нагрузки со спины", sets: "4х10-12", target: "22.5" },
-                  alt:  { name: "Горизонтальная тяга блока", desc: "Вертикально, без раскачки", sets: "3х12", target: "65" } },
-                { id: "pl_4", muscle: "Широчайшие (Вертикаль)",
-                  main: { name: "Подтягивания (гравитрон)", desc: "Полезная декомпрессия", sets: "3-4х8-10", target: "0" },
-                  alt:  { name: "Вертикальная тяга к груди", desc: "Сводя лопатки", sets: "3х10-12", target: "65" } },
-                { id: "pl_5", muscle: "Задняя дельта (Осанка)",
-                  main: { name: "Тяга каната к лицу (Face Pulls)", desc: "Включает вращатели плеча", sets: "3х15", target: "25" },
-                  alt:  { name: "Обратные махи лежа", desc: "На наклонной скамье", sets: "3х12-15", target: "8" } },
-                { id: "pl_6", muscle: "Бицепс (Руки)",
-                  main: { name: "Сгибания с гантелями сидя", desc: "С опорой на спинку", sets: "3х10-12", target: "15" },
-                  alt:  { name: "Сгибания на нижнем блоке", desc: "Хват молотком (канат)", sets: "3х12-15", target: "35" } },
-                { id: "pl_7", muscle: "Кор (Антиротация)",
-                  main: { name: "Жим Паллофа (на блоке)", desc: "Сопротивляемся боковому натяжению", sets: "3х10-12", target: "20" },
-                  alt:  { name: "Боковая планка", desc: "Тело в прямую линию", sets: "3х45 сек", target: "60" } }
+                { id: "pl_1", muscle: "Ягодицы (База/Взрыв)", main: { name: "Ягодичный мост (Hip Thrust)", desc: "Мощный толчок тазом вверх", sets: "4х8-12", target: "110" }, alt:  { name: "Тяга блока между ног", desc: "Наклон с прямой спиной", sets: "3х12-15", target: "50" } },
+                { id: "pl_2", muscle: "Бицепс бедра (Защита ПКС)", main: { name: "Сгибания ног лежа", desc: "Изолирует заднюю поверхность бедра", sets: "3х12-15", target: "50" }, alt:  { name: "Сгибания ног сидя", desc: "Меньше движения в поясницы", sets: "3х12-15", target: "55" } },
+                { id: "pl_3", muscle: "Спина (Горизонталь)", main: { name: "Тяга гантелей (упор грудью)", desc: "Снятие нагрузки со спины", sets: "4х10-12", target: "22.5" }, alt:  { name: "Горизонтальная тяга блока", desc: "Вертикально, без раскачки", sets: "3х12", target: "65" } },
+                { id: "pl_4", muscle: "Широчайшие (Вертикаль)", main: { name: "Подтягивания (гравитрон)", desc: "Полезная декомпрессия", sets: "3-4х8-10", target: "0" }, alt:  { name: "Вертикальная тяга к груди", desc: "Сводя лопатки", sets: "3х10-12", target: "65" } },
+                { id: "pl_5", muscle: "Задняя дельта (Осанка)", main: { name: "Тяга каната к лицу (Face Pulls)", desc: "Включает вращатели плеча", sets: "3х15", target: "25" }, alt:  { name: "Обратные махи лежа", desc: "На наклонной скамье", sets: "3х12-15", target: "8" } },
+                { id: "pl_6", muscle: "Бицепс (Руки)", main: { name: "Сгибания с гантелями сидя", desc: "С опорой на спинку", sets: "3х10-12", target: "15" }, alt:  { name: "Сгибания на нижнем блоке", desc: "Хват молотком (канат)", sets: "3х12-15", target: "35" } },
+                { id: "pl_7", muscle: "Кор (Антиротация)", main: { name: "Жим Паллофа (на блоке)", desc: "Сопротивляемся боковому натяжению", sets: "3х10-12", target: "20" }, alt:  { name: "Боковая планка", desc: "Тело в прямую линию", sets: "3х45 сек", target: "60" } }
             ]
         };
 
@@ -284,6 +249,27 @@
             });
         }
 
+        // Обновление стилей переключателя блоков
+        function updateBlockToggleUI(dayId, isAlt) {
+            const btnA = document.getElementById(`${dayId}-btn-A`);
+            const btnB = document.getElementById(`${dayId}-btn-B`);
+            
+            const activeClasses = ['bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-teal-600', 'dark:text-teal-400'];
+            const inactiveClasses = ['text-slate-500', 'dark:text-slate-400', 'hover:text-slate-700', 'dark:hover:text-slate-200'];
+
+            if (!isAlt) {
+                btnA.classList.add(...activeClasses);
+                btnA.classList.remove(...inactiveClasses);
+                btnB.classList.add(...inactiveClasses);
+                btnB.classList.remove(...activeClasses);
+            } else {
+                btnB.classList.add(...activeClasses);
+                btnB.classList.remove(...inactiveClasses);
+                btnA.classList.add(...inactiveClasses);
+                btnA.classList.remove(...activeClasses);
+            }
+        }
+
         window.toggleExercise = function(dayId, exId, containerId) {
             if (navigator.vibrate) navigator.vibrate(30);
             exerciseState[exId] = !exerciseState[exId];
@@ -294,6 +280,7 @@
             if (navigator.vibrate) navigator.vibrate(50);
             workoutData[dayId].forEach((ex) => { exerciseState[ex.id] = isAlt; });
             renderCards(dayId, containerId);
+            updateBlockToggleUI(dayId, isAlt);
         };
 
         // Navigation logic
@@ -320,7 +307,7 @@
                 views.forEach(view => {
                     if (view.id === targetId) {
                         view.classList.remove('hidden');
-                        if(targetId === 'targets') renderChart(); // Always re-render to catch updated weights
+                        if(targetId === 'targets') renderChart(); 
                     } else {
                         view.classList.add('hidden');
                     }
@@ -329,13 +316,11 @@
             });
         });
 
-        // Dynamic Chart based on LocalStorage
+        // Dynamic Chart
         function renderChart() {
             const ctx = document.getElementById('progressChart').getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
             
-            // Get actual logged weights (using Block A data as primary indicator)
-            // Fallback to initial stats if empty: Leg 100, Bench 50, Hip 60, Row 30
             const currentLeg = parseFloat(Storage.load('pu_1', 'A').weight) || 100;
             const currentBench = parseFloat(Storage.load('pu_4', 'A').weight) || 50;
             const currentHip = parseFloat(Storage.load('pl_1', 'A').weight) || 60;
@@ -354,7 +339,7 @@
                     },
                     {
                         label: 'Цель Эксперта (кг)',
-                        data: [150, 50, 110, 45], // 50kg DB bench (2x25), 45kg DB Row (2x22.5)
+                        data: [150, 50, 110, 45], 
                         backgroundColor: isDark ? '#2dd4bf' : '#0d9488', 
                         borderRadius: 4,
                         barPercentage: 0.6,
