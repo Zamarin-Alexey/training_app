@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ru" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0d9488">
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIkZyZWVyaWRlIFBybyIsICJzaG9ydF9uYW1lIjogIkZyZWVyaWRlIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmOGZhZmMiLCAidGhlbWVfY29sb3ciOiAiIzBkOTQ4OCJ9">
+    
+    <title>Фрирайд План: Тяни-Толкай</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s; }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 280px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .tab-active { border-bottom: 3px solid #0d9488; color: #0d9488; font-weight: 700; }
+        .dark .tab-active { border-bottom: 3px solid #2dd4bf; color: #2dd4bf; }
+        .tab-inactive { border-bottom: 3px solid transparent; color: #64748b; font-weight: 500; }
+        .dark .tab-inactive { color: #94a3b8; }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .safe-pb { padding-bottom: env(safe-area-inset-bottom, 2rem); }
+        
+        /* Custom Input Styling for PWA */
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 antialiased selection:bg-teal-200 dark:selection:bg-teal-900">
+
+    <header class="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2">
+            <div class="flex justify-between items-center mb-3">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight">🏂 Freeride <span class="text-teal-600 dark:text-teal-400">Pro</span></h1>
+                    <p class="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-wider">Логгер тренировок</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="theme-toggle" class="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none touch-manipulation">
+                        <span id="theme-icon-light" class="block dark:hidden text-lg leading-none">🌙</span>
+                        <span id="theme-icon-dark" class="hidden dark:block text-lg leading-none">☀️</span>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="flex overflow-x-auto no-scrollbar space-x-6 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0" id="main-nav">
+                <button class="pb-2 whitespace-nowrap tab-active transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="push">День 1: Толкай</button>
+                <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="pull">День 2: Тяни</button>
+                <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="targets">Прогресс 📈</button>
+                <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="audit">Аудит ✔️</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20 safe-pb">
+        <div id="views-container" class="relative min-h-[400px]">
+            
+            <div id="push" class="view-section fade-in">
+                <div class="mb-4 pl-1 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Жимовые (Push)</h3>
+                        <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">Амортизационная база. Вбивай веса, они сохранятся автоматически.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-5 flex justify-between items-center gap-3 transition-colors duration-300">
+                    <span class="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">🔄 Сменить блок:</span>
+                    <div class="flex gap-2">
+                        <button onclick="setAllBlock('push', false, 'push-grid')" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок А</button>
+                        <button onclick="setAllBlock('push', true, 'push-grid')" class="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок Б</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="push-grid"></div>
+            </div>
+
+            <div id="pull" class="view-section hidden fade-in">
+                <div class="mb-4 pl-1 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Тяговые (Pull)</h3>
+                        <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">Задняя цепь и тяги. Записывай рабочие подходы.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-5 flex justify-between items-center gap-3 transition-colors duration-300">
+                    <span class="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">🔄 Сменить блок:</span>
+                    <div class="flex gap-2">
+                        <button onclick="setAllBlock('pull', false, 'pull-grid')" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок А</button>
+                        <button onclick="setAllBlock('pull', true, 'pull-grid')" class="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок Б</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="pull-grid"></div>
+            </div>
+
+            <div id="targets" class="view-section hidden fade-in">
+                <div class="mb-5 pl-1">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Живой график прогресса</h3>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">График автоматически подтягивает веса из твоих записей в карточках.</p>
+                </div>
+                
+                <div class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-6 transition-colors duration-300">
+                    <div class="chart-container">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="audit" class="view-section hidden fade-in">
+                <div class="mb-5 pl-1">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Аудит Безопасности</h3>
+                    <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">Напоминание о технике.</p>
+                </div>
+
+                <div class="space-y-4 md:space-y-6">
+                    <div class="bg-white dark:bg-slate-800 border border-emerald-100 dark:border-emerald-900/50 p-4 rounded-xl shadow-sm relative overflow-hidden transition-colors duration-300">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 dark:bg-emerald-600"></div>
+                        <h4 class="text-base font-bold text-emerald-900 dark:text-emerald-400 mb-2 pl-2">🛡️ Сколиоз 3 степени</h4>
+                        <ul class="list-none space-y-2 text-slate-600 dark:text-slate-300 text-sm pl-2">
+                            <li><b class="text-emerald-700 dark:text-emerald-500">Икры:</b> Строго сидя или лежа. Без осевой компрессии.</li>
+                            <li><b class="text-emerald-700 dark:text-emerald-500">Плечи:</b> Махи выполняются строго <b>сидя с опорой</b>.</li>
+                            <li><b class="text-emerald-700 dark:text-emerald-500">Тяги:</b> Упор грудью в скамью. Сдвиговое усилие = 0.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Database simulation via LocalStorage
+        const Storage = {
+            getKey: (exId, blockIndex) => `freeride_${exId}_${blockIndex}`,
+            save: (exId, blockIndex, field, value) => {
+                const key = Storage.getKey(exId, blockIndex);
+                let data = JSON.parse(localStorage.getItem(key) || '{"weight":"", "reps":""}');
+                data[field] = value;
+                localStorage.setItem(key, JSON.stringify(data));
+                if (myChartInstance) renderChart(); // Update chart dynamically
+            },
+            load: (exId, blockIndex) => {
+                const key = Storage.getKey(exId, blockIndex);
+                return JSON.parse(localStorage.getItem(key) || '{"weight":"", "reps":""}');
+            }
+        };
+
+        const workoutData = {
+            push: [
+                { id: "pu_1", muscle: "Квадрицепс (База)",
+                  main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени.", sets: "4х8-12", target: "150" },
+                  alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу.", sets: "3х10-12", target: "70" } },
+                { id: "pu_2", muscle: "Квадрицепс / Баланс",
+                  main: { name: "Болгарский сплит-присед", desc: "Гантели в опущенных руках.", sets: "3х8-10", target: "17.5" },
+                  alt:  { name: "Выпады назад с гантелями", desc: "Щадящий вариант для коленей.", sets: "3х10-12", target: "20" } },
+                { id: "pu_3", muscle: "Икры (Контроль лыжи)",
+                  main: { name: "Жим носками в станке", desc: "Прямые колени. Полная растяжка.", sets: "4х15-20", target: "100" },
+                  alt:  { name: "Подъемы на носки сидя", desc: "Прокачивает камбаловидную мышцу.", sets: "4х15-20", target: "40" } },
+                { id: "pu_4", muscle: "Грудь (Толкающий верх)",
+                  main: { name: "Жим гантелей лежа", desc: "Безопасная траектория для плеч.", sets: "4х8-10", target: "25" },
+                  alt:  { name: "Жим гантелей (угол 30°)", desc: "Акцент на визуальную ширину.", sets: "3х10-12", target: "22.5" } },
+                { id: "pu_5", muscle: "Плечи (Средняя дельта)",
+                  main: { name: "Махи гантелями СИДЯ", desc: "Сидя исключаем раскачку поясницы.", sets: "3х12-15", target: "12.5" },
+                  alt:  { name: "Отведения на нижнем блоке", desc: "Постоянное напряжение дельты.", sets: "3х12-15", target: "15" } },
+                { id: "pu_6", muscle: "Трицепс (Руки)",
+                  main: { name: "Разгибания на блоке", desc: "Локти прижаты.", sets: "3х12-15", target: "30" },
+                  alt:  { name: "Французский жим гантелями", desc: "Лежа на скамье.", sets: "3х10-12", target: "12" } },
+                { id: "pu_7", muscle: "Кор (Антиразгибание)",
+                  main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы.", sets: "3х60 сек", target: "60" },
+                  alt:  { name: "Мертвый жук (Dead Bug)", desc: "Поясница ВЖАТА в пол.", sets: "3х20", target: "10" } }
+            ],
+            pull: [
+                { id: "pl_1", muscle: "Ягодицы (База/Взрыв)",
+                  main: { name: "Ягодичный мост (Hip Thrust)", desc: "Мощный толчок тазом вверх.", sets: "4х8-12", target: "110" },
+                  alt:  { name: "Тяга блока между ног", desc: "Наклон с прямой спиной.", sets: "3х12-15", target: "50" } },
+                { id: "pl_2", muscle: "Бицепс бедра (Защита ПКС)",
+                  main: { name: "Сгибания ног лежа", desc: "Изолирует ЗПБ.", sets: "3х12-15", target: "50" },
+                  alt:  { name: "Сгибания ног сидя", desc: "Меньше движения в пояснице.", sets: "3х12-15", target: "55" } },
+                { id: "pl_3", muscle: "Спина (Горизонталь)",
+                  main: { name: "Тяга гантелей (упор грудью)", desc: "Снятие нагрузки со спины.", sets: "4х10-12", target: "22.5" },
+                  alt:  { name: "Горизонтальная тяга блока", desc: "Вертикально, без раскачки!", sets: "3х12", target: "65" } },
+                { id: "pl_4", muscle: "Широчайшие (Вертикаль)",
+                  main: { name: "Подтягивания (гравитрон)", desc: "Полезная декомпрессия.", sets: "3-4х8-10", target: "0" },
+                  alt:  { name: "Вертикальная тяга к груди", desc: "Сводя лопатки.", sets: "3х10-12", target: "65" } },
+                { id: "pl_5", muscle: "Задняя дельта (Осанка)",
+                  main: { name: "Тяга каната к лицу (Face Pulls)", desc: "Включает вращатели плеча.", sets: "3х15", target: "25" },
+                  alt:  { name: "Обратные махи лежа", desc: "На наклонной скамье.", sets: "3х12-15", target: "8" } },
+                { id: "pl_6", muscle: "Бицепс (Руки)",
+                  main: { name: "Сгибания с гантелями сидя", desc: "С опорой на спинку.", sets: "3х10-12", target: "15" },
+                  alt:  { name: "Сгибания на нижнем блоке", desc: "Хват молотком (канат).", sets: "3х12-15", target: "35" } },
+                { id: "pl_7", muscle: "Кор (Антиротация)",
+                  main: { name: "Жим Паллофа (на блоке)", desc: "Сопротивляемся боковому натяжению.", sets: "3х10-12", target: "20" },
+                  alt:  { name: "Боковая планка", desc: "Тело в прямую линию.", sets: "3х45 сек", target: "60" } }
+            ]
+        };
+
+        const exerciseState = {};
+        let myChartInstance = null;
+
+        function renderCards(dayId, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            workoutData[dayId].forEach((ex) => {
+                if (typeof exerciseState[ex.id] === 'undefined') exerciseState[ex.id] = false;
+                
+                const isAlt = exerciseState[ex.id];
+                const currentEx = isAlt ? ex.alt : ex.main;
+                const blockIndex = isAlt ? 'B' : 'A';
+                const savedData = Storage.load(ex.id, blockIndex);
+                
+                const cardBorder = isAlt ? 'border-amber-200 dark:border-amber-700/50' : 'border-slate-200 dark:border-slate-700';
+                const tagColor = isAlt ? 'text-amber-700 dark:text-amber-500' : 'text-teal-700 dark:text-teal-400';
+                const blockBadgeClass = isAlt ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
+                const inputBg = 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition-all';
+
+                const cardHtml = `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border ${cardBorder} flex flex-col justify-between transition-colors duration-300 relative group">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[10px] md:text-xs font-black uppercase tracking-wider ${tagColor}">${ex.muscle}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded transition-colors ${blockBadgeClass}">Блок ${blockIndex}</span>
+                                    <button onclick="toggleExercise('${dayId}', '${ex.id}', '${containerId}')" class="bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 active:scale-95 text-slate-700 dark:text-slate-300 p-1 rounded-lg transition-all touch-manipulation">
+                                        <span class="text-xs font-bold px-1">↻</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <h4 class="text-sm md:text-base font-bold text-slate-900 dark:text-slate-100 mb-1 leading-tight transition-colors">${currentEx.name}</h4>
+                            <p class="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed transition-colors">${currentEx.desc}</p>
+                        </div>
+                        
+                        <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 transition-colors">
+                            <div class="flex justify-between items-center mb-2 text-xs">
+                                <span class="font-medium text-slate-600 dark:text-slate-400">План: <b class="text-slate-800 dark:text-slate-200">${currentEx.sets}</b></span>
+                                <span class="font-bold text-teal-600 dark:text-teal-400">Цель: ${currentEx.target} кг</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="relative w-1/2">
+                                    <input type="number" inputmode="decimal" placeholder="Вес" value="${savedData.weight}" 
+                                           oninput="Storage.save('${ex.id}', '${blockIndex}', 'weight', this.value)"
+                                           class="w-full py-2 px-3 rounded-lg text-sm font-bold text-center ${inputBg}">
+                                    <span class="absolute right-3 top-2 text-xs text-slate-400 font-medium">кг</span>
+                                </div>
+                                <div class="relative w-1/2">
+                                    <input type="number" inputmode="numeric" placeholder="Раз" value="${savedData.reps}" 
+                                           oninput="Storage.save('${ex.id}', '${blockIndex}', 'reps', this.value)"
+                                           class="w-full py-2 px-3 rounded-lg text-sm font-bold text-center ${inputBg}">
+                                    <span class="absolute right-3 top-2 text-xs text-slate-400 font-medium">повт</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        window.toggleExercise = function(dayId, exId, containerId) {
+            if (navigator.vibrate) navigator.vibrate(30);
+            exerciseState[exId] = !exerciseState[exId];
+            renderCards(dayId, containerId);
+        };
+
+        window.setAllBlock = function(dayId, isAlt, containerId) {
+            if (navigator.vibrate) navigator.vibrate(50);
+            workoutData[dayId].forEach((ex) => { exerciseState[ex.id] = isAlt; });
+            renderCards(dayId, containerId);
+        };
+
+        // Navigation logic
+        const navContainer = document.getElementById('main-nav');
+        const navButtons = document.querySelectorAll('#main-nav button');
+        const views = document.querySelectorAll('.view-section');
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (navigator.vibrate) navigator.vibrate(20);
+
+                navButtons.forEach(b => {
+                    b.classList.remove('tab-active');
+                    b.classList.add('tab-inactive');
+                });
+                btn.classList.remove('tab-inactive');
+                btn.classList.add('tab-active');
+
+                const btnCenter = btn.offsetLeft + (btn.offsetWidth / 2);
+                const navCenter = navContainer.offsetWidth / 2;
+                navContainer.scrollTo({ left: btnCenter - navCenter, behavior: 'smooth' });
+
+                const targetId = btn.getAttribute('data-target');
+                views.forEach(view => {
+                    if (view.id === targetId) {
+                        view.classList.remove('hidden');
+                        if(targetId === 'targets') renderChart(); // Always re-render to catch updated weights
+                    } else {
+                        view.classList.add('hidden');
+                    }
+                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Dynamic Chart based on LocalStorage
+        function renderChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            const isDark = document.documentElement.classList.contains('dark');
+            
+            // Get actual logged weights (using Block A data as primary indicator)
+            // Fallback to initial stats if empty: Leg 100, Bench 50, Hip 60, Row 30
+            const currentLeg = parseFloat(Storage.load('pu_1', 'A').weight) || 100;
+            const currentBench = parseFloat(Storage.load('pu_4', 'A').weight) || 50;
+            const currentHip = parseFloat(Storage.load('pl_1', 'A').weight) || 60;
+            const currentRow = parseFloat(Storage.load('pl_3', 'A').weight) || 30;
+
+            const data = {
+                labels: ['Жим Ногами', 'Жим Гантелей', 'Ягодичный Мост', 'Тяга (упор)'],
+                datasets: [
+                    {
+                        label: 'Твой рабочий вес (кг)',
+                        data: [currentLeg, currentBench, currentHip, currentRow],
+                        backgroundColor: isDark ? '#475569' : '#cbd5e1', 
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8
+                    },
+                    {
+                        label: 'Цель Эксперта (кг)',
+                        data: [150, 50, 110, 45], // 50kg DB bench (2x25), 45kg DB Row (2x22.5)
+                        backgroundColor: isDark ? '#2dd4bf' : '#0d9488', 
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8
+                    }
+                ]
+            };
+
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { 
+                            position: 'top', 
+                            labels: { color: isDark ? '#cbd5e1' : '#475569', font: { family: "'Inter', sans-serif", size: 11 }, boxWidth: 10 } 
+                        },
+                        tooltip: {
+                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#f8fafc', bodyColor: '#f8fafc',
+                            titleFont: { family: "'Inter', sans-serif", size: 12 },
+                            padding: 10, cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false },
+                            ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 }, maxRotation: 45, minRotation: 0 }
+                        }
+                    },
+                    animation: { duration: 500, easing: 'easeOutQuart' }
+                }
+            };
+            
+            if (myChartInstance) myChartInstance.destroy();
+            myChartInstance = new Chart(ctx, config);
+        }
+
+        // Theme Toggle
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        themeToggleBtn.addEventListener('click', () => {
+            if (navigator.vibrate) navigator.vibrate(20);
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            if(myChartInstance && !document.getElementById('targets').classList.contains('hidden')) renderChart();
+        });
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            renderCards('push', 'push-grid');
+            renderCards('pull', 'pull-grid');
+        });
+
+    </script>
+</body>
+</html>
