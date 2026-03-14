@@ -43,8 +43,8 @@
 
             // Генерируем манифест динамически
             const manifest = {
-                "name": "Freeride Pro",
-                "short_name": "Freeride",
+                "name": "План тренировок",
+                "short_name": "План тренировок",
                 "display": "standalone",
                 "background_color": "#f8fafc",
                 "theme_color": "#0d9488",
@@ -127,15 +127,7 @@
         <div id="views-container" class="relative min-h-[400px]">
             
             <div id="push" class="view-section fade-in">
-                <div class="mb-4 pl-1 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Жимовые (Push)</h3>
-                        <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">Амортизационная база. Вбивай веса, они сохранятся автоматически.</p>
-                    </div>
-                </div>
-
                 <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-5 flex justify-between items-center gap-3 transition-colors duration-300">
-                    <span class="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">🔄 Сменить блок:</span>
                     <div class="flex gap-2">
                         <button onclick="setAllBlock('push', false, 'push-grid')" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок А</button>
                         <button onclick="setAllBlock('push', true, 'push-grid')" class="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок Б</button>
@@ -146,15 +138,7 @@
             </div>
 
             <div id="pull" class="view-section hidden fade-in">
-                <div class="mb-4 pl-1 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Тяговые (Pull)</h3>
-                        <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">Задняя цепь и тяги. Записывай рабочие подходы.</p>
-                    </div>
-                </div>
-
                 <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-5 flex justify-between items-center gap-3 transition-colors duration-300">
-                    <span class="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">🔄 Сменить блок:</span>
                     <div class="flex gap-2">
                         <button onclick="setAllBlock('pull', false, 'pull-grid')" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок А</button>
                         <button onclick="setAllBlock('pull', true, 'pull-grid')" class="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg active:scale-95 transition-all touch-manipulation">Блок Б</button>
@@ -205,63 +189,63 @@
             getKey: (exId, blockIndex) => `freeride_${exId}_${blockIndex}`,
             save: (exId, blockIndex, field, value) => {
                 const key = Storage.getKey(exId, blockIndex);
-                let data = JSON.parse(localStorage.getItem(key) || '{"weight":"", "reps":""}');
+                let data = JSON.parse(localStorage.getItem(key) || '{"weight":""}');
                 data[field] = value;
                 localStorage.setItem(key, JSON.stringify(data));
                 if (myChartInstance) renderChart(); // Update chart dynamically
             },
             load: (exId, blockIndex) => {
                 const key = Storage.getKey(exId, blockIndex);
-                return JSON.parse(localStorage.getItem(key) || '{"weight":"", "reps":""}');
+                return JSON.parse(localStorage.getItem(key) || '{"weight":""}');
             }
         };
 
         const workoutData = {
             push: [
                 { id: "pu_1", muscle: "Квадрицепс (База)",
-                  main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени.", sets: "4х8-12", target: "150" },
-                  alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу.", sets: "3х10-12", target: "70" } },
+                  main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени", sets: "4х8-12", target: "150" },
+                  alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу", sets: "3х10-12", target: "70" } },
                 { id: "pu_2", muscle: "Квадрицепс / Баланс",
-                  main: { name: "Болгарский сплит-присед", desc: "Гантели в опущенных руках.", sets: "3х8-10", target: "17.5" },
-                  alt:  { name: "Выпады назад с гантелями", desc: "Щадящий вариант для коленей.", sets: "3х10-12", target: "20" } },
+                  main: { name: "Болгарский сплит-присед", desc: "Гантели в опущенных руках", sets: "3х8-10", target: "17.5" },
+                  alt:  { name: "Выпады назад с гантелями", desc: "Щадящий вариант для коленей", sets: "3х10-12", target: "20" } },
                 { id: "pu_3", muscle: "Икры (Контроль лыжи)",
-                  main: { name: "Жим носками в станке", desc: "Прямые колени. Полная растяжка.", sets: "4х15-20", target: "100" },
-                  alt:  { name: "Подъемы на носки сидя", desc: "Прокачивает камбаловидную мышцу.", sets: "4х15-20", target: "40" } },
+                  main: { name: "Жим носками в станке", desc: "Прямые колени. Полная растяжка", sets: "4х15-20", target: "100" },
+                  alt:  { name: "Подъемы на носки сидя", desc: "Прокачивает камбаловидную мышцу", sets: "4х15-20", target: "40" } },
                 { id: "pu_4", muscle: "Грудь (Толкающий верх)",
-                  main: { name: "Жим гантелей лежа", desc: "Безопасная траектория для плеч.", sets: "4х8-10", target: "25" },
-                  alt:  { name: "Жим гантелей (угол 30°)", desc: "Акцент на визуальную ширину.", sets: "3х10-12", target: "22.5" } },
+                  main: { name: "Жим гантелей лежа", desc: "Безопасная траектория для плеч", sets: "4х8-10", target: "25" },
+                  alt:  { name: "Жим гантелей (угол 30°)", desc: "Акцент на визуальную ширину", sets: "3х10-12", target: "22.5" } },
                 { id: "pu_5", muscle: "Плечи (Средняя дельта)",
-                  main: { name: "Махи гантелями СИДЯ", desc: "Сидя исключаем раскачку поясницы.", sets: "3х12-15", target: "12.5" },
-                  alt:  { name: "Отведения на нижнем блоке", desc: "Постоянное напряжение дельты.", sets: "3х12-15", target: "15" } },
+                  main: { name: "Махи гантелями СИДЯ", desc: "Сидя исключаем раскачку поясницы", sets: "3х12-15", target: "12.5" },
+                  alt:  { name: "Отведения на нижнем блоке", desc: "Постоянное напряжение дельты", sets: "3х12-15", target: "15" } },
                 { id: "pu_6", muscle: "Трицепс (Руки)",
-                  main: { name: "Разгибания на блоке", desc: "Локти прижаты.", sets: "3х12-15", target: "30" },
-                  alt:  { name: "Французский жим гантелями", desc: "Лежа на скамье.", sets: "3х10-12", target: "12" } },
+                  main: { name: "Разгибания на блоке", desc: "Локти прижаты", sets: "3х12-15", target: "30" },
+                  alt:  { name: "Французский жим гантелями", desc: "Лежа на скамье", sets: "3х10-12", target: "12" } },
                 { id: "pu_7", muscle: "Кор (Антиразгибание)",
-                  main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы.", sets: "3х60 сек", target: "60" },
-                  alt:  { name: "Мертвый жук (Dead Bug)", desc: "Поясница ВЖАТА в пол.", sets: "3х20", target: "10" } }
+                  main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы", sets: "3х60 сек", target: "60" },
+                  alt:  { name: "Мертвый жук (Dead Bug)", desc: "Поясница ВЖАТА в пол", sets: "3х20", target: "10" } }
             ],
             pull: [
                 { id: "pl_1", muscle: "Ягодицы (База/Взрыв)",
-                  main: { name: "Ягодичный мост (Hip Thrust)", desc: "Мощный толчок тазом вверх.", sets: "4х8-12", target: "110" },
-                  alt:  { name: "Тяга блока между ног", desc: "Наклон с прямой спиной.", sets: "3х12-15", target: "50" } },
+                  main: { name: "Ягодичный мост (Hip Thrust)", desc: "Мощный толчок тазом вверх", sets: "4х8-12", target: "110" },
+                  alt:  { name: "Тяга блока между ног", desc: "Наклон с прямой спиной", sets: "3х12-15", target: "50" } },
                 { id: "pl_2", muscle: "Бицепс бедра (Защита ПКС)",
-                  main: { name: "Сгибания ног лежа", desc: "Изолирует ЗПБ.", sets: "3х12-15", target: "50" },
-                  alt:  { name: "Сгибания ног сидя", desc: "Меньше движения в поясницы.", sets: "3х12-15", target: "55" } },
+                  main: { name: "Сгибания ног лежа", desc: "Изолирует заднюю поверхность бедра", sets: "3х12-15", target: "50" },
+                  alt:  { name: "Сгибания ног сидя", desc: "Меньше движения в поясницы", sets: "3х12-15", target: "55" } },
                 { id: "pl_3", muscle: "Спина (Горизонталь)",
-                  main: { name: "Тяга гантелей (упор грудью)", desc: "Снятие нагрузки со спины.", sets: "4х10-12", target: "22.5" },
-                  alt:  { name: "Горизонтальная тяга блока", desc: "Вертикально, без раскачки!", sets: "3х12", target: "65" } },
+                  main: { name: "Тяга гантелей (упор грудью)", desc: "Снятие нагрузки со спины", sets: "4х10-12", target: "22.5" },
+                  alt:  { name: "Горизонтальная тяга блока", desc: "Вертикально, без раскачки", sets: "3х12", target: "65" } },
                 { id: "pl_4", muscle: "Широчайшие (Вертикаль)",
-                  main: { name: "Подтягивания (гравитрон)", desc: "Полезная декомпрессия.", sets: "3-4х8-10", target: "0" },
-                  alt:  { name: "Вертикальная тяга к груди", desc: "Сводя лопатки.", sets: "3х10-12", target: "65" } },
+                  main: { name: "Подтягивания (гравитрон)", desc: "Полезная декомпрессия", sets: "3-4х8-10", target: "0" },
+                  alt:  { name: "Вертикальная тяга к груди", desc: "Сводя лопатки", sets: "3х10-12", target: "65" } },
                 { id: "pl_5", muscle: "Задняя дельта (Осанка)",
-                  main: { name: "Тяга каната к лицу (Face Pulls)", desc: "Включает вращатели плеча.", sets: "3х15", target: "25" },
-                  alt:  { name: "Обратные махи лежа", desc: "На наклонной скамье.", sets: "3х12-15", target: "8" } },
+                  main: { name: "Тяга каната к лицу (Face Pulls)", desc: "Включает вращатели плеча", sets: "3х15", target: "25" },
+                  alt:  { name: "Обратные махи лежа", desc: "На наклонной скамье", sets: "3х12-15", target: "8" } },
                 { id: "pl_6", muscle: "Бицепс (Руки)",
-                  main: { name: "Сгибания с гантелями сидя", desc: "С опорой на спинку.", sets: "3х10-12", target: "15" },
-                  alt:  { name: "Сгибания на нижнем блоке", desc: "Хват молотком (канат).", sets: "3х12-15", target: "35" } },
+                  main: { name: "Сгибания с гантелями сидя", desc: "С опорой на спинку", sets: "3х10-12", target: "15" },
+                  alt:  { name: "Сгибания на нижнем блоке", desc: "Хват молотком (канат)", sets: "3х12-15", target: "35" } },
                 { id: "pl_7", muscle: "Кор (Антиротация)",
-                  main: { name: "Жим Паллофа (на блоке)", desc: "Сопротивляемся боковому натяжению.", sets: "3х10-12", target: "20" },
-                  alt:  { name: "Боковая планка", desc: "Тело в прямую линию.", sets: "3х45 сек", target: "60" } }
+                  main: { name: "Жим Паллофа (на блоке)", desc: "Сопротивляемся боковому натяжению", sets: "3х10-12", target: "20" },
+                  alt:  { name: "Боковая планка", desc: "Тело в прямую линию", sets: "3х45 сек", target: "60" } }
             ]
         };
 
@@ -312,12 +296,6 @@
                                            oninput="Storage.save('${ex.id}', '${blockIndex}', 'weight', this.value)"
                                            class="w-full py-2 px-3 rounded-lg text-sm font-bold text-center ${inputBg}">
                                     <span class="absolute right-3 top-2 text-xs text-slate-400 font-medium">кг</span>
-                                </div>
-                                <div class="relative w-1/2">
-                                    <input type="number" inputmode="numeric" placeholder="Раз" value="${savedData.reps}" 
-                                           oninput="Storage.save('${ex.id}', '${blockIndex}', 'reps', this.value)"
-                                           class="w-full py-2 px-3 rounded-lg text-sm font-bold text-center ${inputBg}">
-                                    <span class="absolute right-3 top-2 text-xs text-slate-400 font-medium">повт</span>
                                 </div>
                             </div>
                         </div>
