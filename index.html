@@ -17,11 +17,9 @@
             canvas.height = size;
             const ctx = canvas.getContext('2d');
 
-            // Рисуем фон
             ctx.fillStyle = '#0d9488';
             ctx.fillRect(0, 0, size, size);
             
-            // Рисуем логотип
             ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -124,8 +122,8 @@
             
             <div id="push" class="view-section fade-in">
                 <div class="w-full flex bg-slate-200/70 dark:bg-slate-800 p-1 rounded-xl mb-5 border border-slate-200 dark:border-slate-700 transition-colors duration-300">
-                    <button id="push-btn-A" onclick="setAllBlock('push', false, 'push-grid')" class="flex-1 py-2 text-sm md:text-base font-bold rounded-lg shadow-sm bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 transition-all duration-300 touch-manipulation">Блок А</button>
-                    <button id="push-btn-B" onclick="setAllBlock('push', true, 'push-grid')" class="flex-1 py-2 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Блок Б</button>
+                    <button id="push-btn-A" onclick="setAllVariant('push', false, 'push-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg shadow-sm bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 transition-all duration-300 touch-manipulation">Вариант А</button>
+                    <button id="push-btn-B" onclick="setAllVariant('push', true, 'push-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Вариант Б</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="push-grid"></div>
@@ -133,8 +131,8 @@
 
             <div id="pull" class="view-section hidden fade-in">
                 <div class="w-full flex bg-slate-200/70 dark:bg-slate-800 p-1 rounded-xl mb-5 border border-slate-200 dark:border-slate-700 transition-colors duration-300">
-                    <button id="pull-btn-A" onclick="setAllBlock('pull', false, 'pull-grid')" class="flex-1 py-2 text-sm md:text-base font-bold rounded-lg shadow-sm bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 transition-all duration-300 touch-manipulation">Блок А</button>
-                    <button id="pull-btn-B" onclick="setAllBlock('pull', true, 'pull-grid')" class="flex-1 py-2 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Блок Б</button>
+                    <button id="pull-btn-A" onclick="setAllVariant('pull', false, 'pull-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg shadow-sm bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 transition-all duration-300 touch-manipulation">Вариант А</button>
+                    <button id="pull-btn-B" onclick="setAllVariant('pull', true, 'pull-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Вариант Б</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="pull-grid"></div>
@@ -156,18 +154,17 @@
     </main>
 
     <script>
-        // Database simulation via LocalStorage
         const Storage = {
-            getKey: (exId, blockIndex) => `freeride_${exId}_${blockIndex}`,
-            save: (exId, blockIndex, field, value) => {
-                const key = Storage.getKey(exId, blockIndex);
+            getKey: (exId, variantIndex) => `freeride_${exId}_${variantIndex}`,
+            save: (exId, variantIndex, field, value) => {
+                const key = Storage.getKey(exId, variantIndex);
                 let data = JSON.parse(localStorage.getItem(key) || '{"weight":""}');
                 data[field] = value;
                 localStorage.setItem(key, JSON.stringify(data));
                 if (myChartInstance) renderChart(); 
             },
-            load: (exId, blockIndex) => {
-                const key = Storage.getKey(exId, blockIndex);
+            load: (exId, variantIndex) => {
+                const key = Storage.getKey(exId, variantIndex);
                 return JSON.parse(localStorage.getItem(key) || '{"weight":""}');
             }
         };
@@ -205,42 +202,55 @@
                 
                 const isAlt = exerciseState[ex.id];
                 const currentEx = isAlt ? ex.alt : ex.main;
-                const blockIndex = isAlt ? 'B' : 'A';
-                const savedData = Storage.load(ex.id, blockIndex);
+                const variantIndex = isAlt ? 'B' : 'A'; // Для хранилища
+                const variantLabel = isAlt ? 'Б' : 'А'; // Для отображения
+                const savedData = Storage.load(ex.id, variantIndex);
                 
                 const cardBorder = isAlt ? 'border-amber-200 dark:border-amber-700/50' : 'border-slate-200 dark:border-slate-700';
                 const tagColor = isAlt ? 'text-amber-700 dark:text-amber-500' : 'text-teal-700 dark:text-teal-400';
-                const blockBadgeClass = isAlt ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
-                const inputBg = 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition-all';
+                const variantBadgeClass = isAlt ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
+                
+                const swapIcon = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                `;
 
                 const cardHtml = `
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border ${cardBorder} flex flex-col justify-between transition-colors duration-300 relative group">
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border ${cardBorder} flex flex-col h-full transition-colors duration-300 relative group">
+                        
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex flex-col gap-1.5">
                                 <span class="text-[10px] md:text-xs font-black uppercase tracking-wider ${tagColor}">${ex.muscle}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded transition-colors ${blockBadgeClass}">Блок ${blockIndex}</span>
-                                    <button onclick="toggleExercise('${dayId}', '${ex.id}', '${containerId}')" class="bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 active:scale-95 text-slate-700 dark:text-slate-300 p-1 rounded-lg transition-all touch-manipulation">
-                                        <span class="text-xs font-bold px-1">↻</span>
-                                    </button>
-                                </div>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded w-max transition-colors ${variantBadgeClass}">Вариант ${variantLabel}</span>
                             </div>
-                            <h4 class="text-sm md:text-base font-bold text-slate-900 dark:text-slate-100 mb-1 leading-tight transition-colors">${currentEx.name}</h4>
-                            <p class="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed transition-colors">${currentEx.desc}</p>
+                            <button onclick="toggleExercise('${dayId}', '${ex.id}', '${containerId}')" class="p-2 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-full text-slate-500 dark:text-slate-300 transition-all touch-manipulation active:scale-90 focus:outline-none">
+                                ${swapIcon}
+                            </button>
                         </div>
                         
-                        <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 transition-colors">
-                            <div class="flex justify-between items-center mb-2 text-xs">
-                                <span class="font-medium text-slate-600 dark:text-slate-400">План: <b class="text-slate-800 dark:text-slate-200">${currentEx.sets}</b></span>
-                                <span class="font-bold text-teal-600 dark:text-teal-400">Цель: ${currentEx.target} кг</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <div class="relative w-1/2">
-                                    <input type="number" inputmode="decimal" placeholder="Вес" value="${savedData.weight}" 
-                                           oninput="Storage.save('${ex.id}', '${blockIndex}', 'weight', this.value)"
-                                           class="w-full py-2 px-3 rounded-lg text-sm font-bold text-center ${inputBg}">
-                                    <span class="absolute right-3 top-2 text-xs text-slate-400 font-medium">кг</span>
+                        <div class="flex-grow">
+                            <h4 class="text-sm md:text-base font-bold text-slate-900 dark:text-slate-100 mb-1.5 leading-tight transition-colors">${currentEx.name}</h4>
+                            <p class="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed transition-colors">${currentEx.desc}</p>
+                        </div>
+                        
+                        <div class="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 transition-colors mt-auto">
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Сеты</span>
+                                    <span class="text-sm font-bold text-slate-800 dark:text-slate-200">${currentEx.sets}</span>
                                 </div>
+                                <div class="flex flex-col text-right">
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Цель</span>
+                                    <span class="text-sm font-bold text-teal-600 dark:text-teal-400">${currentEx.target} кг</span>
+                                </div>
+                            </div>
+                            
+                            <div class="relative flex items-center mt-1">
+                                <input type="number" inputmode="decimal" placeholder="Запиши рабочий вес" value="${savedData.weight}" 
+                                       oninput="Storage.save('${ex.id}', '${variantIndex}', 'weight', this.value)"
+                                       class="w-full py-2.5 pl-3 pr-8 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm">
+                                <span class="absolute right-3 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">кг</span>
                             </div>
                         </div>
                     </div>
@@ -249,8 +259,7 @@
             });
         }
 
-        // Обновление стилей переключателя блоков
-        function updateBlockToggleUI(dayId, isAlt) {
+        function updateVariantToggleUI(dayId, isAlt) {
             const btnA = document.getElementById(`${dayId}-btn-A`);
             const btnB = document.getElementById(`${dayId}-btn-B`);
             
@@ -276,14 +285,13 @@
             renderCards(dayId, containerId);
         };
 
-        window.setAllBlock = function(dayId, isAlt, containerId) {
+        window.setAllVariant = function(dayId, isAlt, containerId) {
             if (navigator.vibrate) navigator.vibrate(50);
             workoutData[dayId].forEach((ex) => { exerciseState[ex.id] = isAlt; });
             renderCards(dayId, containerId);
-            updateBlockToggleUI(dayId, isAlt);
+            updateVariantToggleUI(dayId, isAlt);
         };
 
-        // Navigation logic
         const navContainer = document.getElementById('main-nav');
         const navButtons = document.querySelectorAll('#main-nav button');
         const views = document.querySelectorAll('.view-section');
@@ -316,7 +324,6 @@
             });
         });
 
-        // Dynamic Chart
         function renderChart() {
             const ctx = document.getElementById('progressChart').getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
@@ -386,7 +393,6 @@
             myChartInstance = new Chart(ctx, config);
         }
 
-        // Theme Toggle
         const themeToggleBtn = document.getElementById('theme-toggle');
         themeToggleBtn.addEventListener('click', () => {
             if (navigator.vibrate) navigator.vibrate(20);
@@ -395,7 +401,6 @@
             if(myChartInstance && !document.getElementById('targets').classList.contains('hidden')) renderChart();
         });
 
-        // Init
         document.addEventListener('DOMContentLoaded', () => {
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
