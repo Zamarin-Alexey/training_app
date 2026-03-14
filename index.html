@@ -6,8 +6,8 @@
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0d9488">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" id="theme-color-meta" content="#f8fafc">
     
     <script>
         (function() {
@@ -17,7 +17,7 @@
             canvas.height = size;
             const ctx = canvas.getContext('2d');
 
-            ctx.fillStyle = '#0d9488';
+            ctx.fillStyle = '#0f172a'; // Изменил цвет фона иконки на нейтральный темный
             ctx.fillRect(0, 0, size, size);
             
             ctx.fillStyle = '#ffffff';
@@ -37,6 +37,27 @@
             appleLink.rel = 'apple-touch-icon';
             appleLink.href = iconUrl;
             document.head.appendChild(appleLink);
+
+            const manifest = {
+                "name": "План тренировок",
+                "short_name": "План тренировок",
+                "display": "standalone",
+                "background_color": "#f8fafc",
+                "theme_color": "#f8fafc", // Убрал акцентный цвет из манифеста
+                "icons": [
+                    {
+                        "src": iconUrl,
+                        "sizes": "512x512",
+                        "type": "image/png",
+                        "purpose": "any maskable"
+                    }
+                ]
+            };
+            const manifestStr = 'data:application/manifest+json;base64,' + btoa(JSON.stringify(manifest));
+            const manifestLink = document.createElement('link');
+            manifestLink.rel = 'manifest';
+            manifestLink.href = manifestStr;
+            document.head.appendChild(manifestLink);
         })();
     </script>
     
@@ -70,7 +91,6 @@
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* Анимация пульсации для таймера */
         @keyframes timerPulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
             70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); }
@@ -92,7 +112,7 @@
             <nav class="flex overflow-x-auto no-scrollbar space-x-6 pb-1 mt-1 pr-16 sm:pr-0 -mx-4 px-4 sm:mx-0 sm:px-0" id="main-nav">
                 <button class="pb-2 whitespace-nowrap tab-active transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="push">День 1: Толкай</button>
                 <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="pull">День 2: Тяни</button>
-                <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="targets">Прогресс</button>
+                <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="targets">Прогресс 📈</button>
             </nav>
         </div>
     </header>
@@ -154,13 +174,20 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-            <div class="p-4 max-h-[60vh] overflow-y-auto no-scrollbar" id="history-list">
-                </div>
+            <div class="p-4 max-h-[60vh] overflow-y-auto no-scrollbar" id="history-list"></div>
         </div>
     </div>
 
     <script>
-        // Обновленная логика хранилища (добавлена поддержка истории)
+        // Функция динамического обновления цвета статус-бара
+        function updateMetaThemeColor(isDark) {
+            const metaTheme = document.getElementById('theme-color-meta');
+            if (metaTheme) {
+                // #0f172a = bg-slate-900, #f8fafc = bg-slate-50
+                metaTheme.setAttribute('content', isDark ? '#0f172a' : '#f8fafc');
+            }
+        }
+
         const Storage = {
             getKey: (exId, variantIndex) => `freeride_${exId}_${variantIndex}`,
             
@@ -168,13 +195,11 @@
                 const key = Storage.getKey(exId, variantIndex);
                 let data = JSON.parse(localStorage.getItem(key) || '{"weight":"", "history":[]}');
                 
-                // Проверяем, изменился ли вес, чтобы не плодить пустые или дублирующиеся записи
                 if (newWeight !== "" && newWeight !== data.weight) {
                     const today = new Date().toLocaleDateString('ru-RU');
                     if (!data.history) data.history = [];
                     
                     const lastEntry = data.history[data.history.length - 1];
-                    // Если сегодня уже вводили вес, обновляем последнюю запись, иначе добавляем новую
                     if (lastEntry && lastEntry.date === today) {
                         lastEntry.weight = newWeight;
                     } else {
@@ -283,7 +308,6 @@
             });
         }
 
-        /* ----- ЛОГИКА ИСТОРИИ ----- */
         function openHistory(exId, variantIndex, exName) {
             if (navigator.vibrate) navigator.vibrate(20);
             const data = Storage.load(exId, variantIndex);
@@ -294,7 +318,6 @@
             if (!data.history || data.history.length === 0) {
                 listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый вес!</div>';
             } else {
-                // Показываем в обратном порядке (новые сверху)
                 const reversedHistory = [...data.history].reverse();
                 reversedHistory.forEach(item => {
                     listContainer.insertAdjacentHTML('beforeend', `
@@ -309,7 +332,6 @@
             const modal = document.getElementById('history-modal');
             const modalContent = document.getElementById('history-modal-content');
             modal.classList.remove('hidden');
-            // Небольшая задержка для анимации
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 modalContent.classList.remove('scale-95');
@@ -326,7 +348,6 @@
             }, 300);
         }
 
-        /* ----- ЛОГИКА ТАЙМЕРА ----- */
         let timerInterval = null;
         let timerSeconds = 0;
         let isTimerActive = false;
@@ -339,7 +360,7 @@
             const btn = document.getElementById('timer-toggle-btn');
             if (timerSeconds === 0 && isTimerActive) {
                 btn.classList.add('timer-done');
-                if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]); // Паттерн вибрации
+                if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]); 
             } else {
                 btn.classList.remove('timer-done');
             }
@@ -350,7 +371,6 @@
             const controls = document.getElementById('timer-controls');
             if (controls.classList.contains('hidden')) {
                 controls.classList.remove('hidden');
-                // Если таймер не запущен, ставим дефолтные 90 секунд
                 if (!isTimerActive && timerSeconds === 0) {
                     timerSeconds = 90;
                     isTimerActive = true;
@@ -372,7 +392,6 @@
             timerSeconds += amount;
             if (timerSeconds < 0) timerSeconds = 0;
             if (timerSeconds > 0 && timerSeconds === amount && !isTimerActive) {
-                // Если таймер был на нуле и мы добавили время, перезапускаем
                 isTimerActive = true;
                 timerInterval = setInterval(() => {
                     if (timerSeconds > 0) {
@@ -394,7 +413,6 @@
             document.getElementById('timer-toggle-btn').classList.remove('timer-done');
         }
 
-        /* ----- UI И НАВИГАЦИЯ ----- */
         function updateVariantToggleUI(dayId, isAlt) {
             const btnA = document.getElementById(`${dayId}-btn-A`);
             const btnB = document.getElementById(`${dayId}-btn-B`);
@@ -493,22 +511,28 @@
         const themeToggleBtn = document.getElementById('theme-toggle');
         themeToggleBtn.addEventListener('click', () => {
             if (navigator.vibrate) navigator.vibrate(20);
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateMetaThemeColor(isDark); // Обновляем цвет статус-бара
+            
             if(myChartInstance && !document.getElementById('targets').classList.contains('hidden')) renderChart();
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            const isDark = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            if (isDark) {
                 document.documentElement.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
             }
+            
+            updateMetaThemeColor(isDark); // Устанавливаем правильный цвет при загрузке
             renderCards('push', 'push-grid');
             renderCards('pull', 'pull-grid');
         });
 
-        // Закрытие модального окна при клике вне его
         document.getElementById('history-modal').addEventListener('click', function(e) {
             if (e.target === this) closeHistory();
         });
