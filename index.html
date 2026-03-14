@@ -2,16 +2,68 @@
 <html lang="ru" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0d9488">
     
-    <link rel="icon" href="icon.png" type="image/png">
-    <link rel="apple-touch-icon" href="icon.png">
-    
-    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIkZyZWVyaWRlIFBybyIsICJzaG9ydF9uYW1lIjogIkZyZWVyaWRlIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmOGZhZmMiLCAidGhlbWVfY29sb3ciOiAiIzBkOTQ4OCIsICJpY29ucyI6IFt7InNyYyI6ICJpY29uLnBuZyIsICJzaXplcyI6ICI1MTJ4NTEyIiwgInR5cGUiOiAiaW1hZ2UvcG5nIn1dfQ==">
+    <script>
+        (function() {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Рисуем фон (Teal 600), чтобы иконка была полноцветной
+            ctx.fillStyle = '#0d9488';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Рисуем логотип (белая буква T)
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = '900 300px sans-serif';
+            ctx.fillText('T', size / 2, size / 2 + 10);
+            
+            const iconUrl = canvas.toDataURL('image/png');
+
+            // Устанавливаем иконку для браузера и Apple
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            link.href = iconUrl;
+            document.head.appendChild(link);
+
+            const appleLink = document.createElement('link');
+            appleLink.rel = 'apple-touch-icon';
+            appleLink.href = iconUrl;
+            document.head.appendChild(appleLink);
+
+            // Генерируем манифест динамически
+            const manifest = {
+                "name": "Freeride Pro",
+                "short_name": "Freeride",
+                "display": "standalone",
+                "background_color": "#f8fafc",
+                "theme_color": "#0d9488",
+                "icons": [
+                    {
+                        "src": iconUrl,
+                        "sizes": "512x512",
+                        "type": "image/png",
+                        "purpose": "any maskable"
+                    }
+                ]
+            };
+            const manifestStr = 'data:application/manifest+json;base64,' + btoa(JSON.stringify(manifest));
+            const manifestLink = document.createElement('link');
+            manifestLink.rel = 'manifest';
+            manifestLink.href = manifestStr;
+            document.head.appendChild(manifestLink);
+        })();
+    </script>
     
     <title>Тренировки</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -39,7 +91,6 @@
         }
         .safe-pb { padding-bottom: env(safe-area-inset-bottom, 2rem); }
         
-        /* Custom Input Styling for PWA */
         input[type="number"] {
             -moz-appearance: textfield;
         }
