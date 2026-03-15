@@ -78,7 +78,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .safe-pb { padding-bottom: env(safe-area-inset-bottom, 2rem); }
         
-        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"], input[type="text"] { -moz-appearance: textfield; }
         input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
         @keyframes timerPulse {
@@ -87,7 +87,6 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
         }
         .timer-done { animation: timerPulse 1s infinite; background-color: #ef4444 !important; }
-        #timer-input::-webkit-outer-spin-button, #timer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 antialiased selection:bg-teal-200 dark:selection:bg-teal-900">
@@ -160,17 +159,15 @@
             <button onclick="adjustTimer(-10)" class="w-10 h-10 rounded-full flex items-center justify-center bg-rose-500/10 text-rose-400 dark:text-rose-500 font-bold active:bg-rose-500/20 touch-manipulation transition-colors">-10</button>
             <div class="relative flex items-center justify-center w-[90px]" title="Нажми, чтобы ввести время">
                 <div id="timer-display" onclick="enableTimerEdit()" class="font-mono text-xl font-bold text-white dark:text-slate-900 cursor-pointer w-full text-center hover:text-teal-400 transition-colors">01:30</div>
-                <div id="timer-edit-container" class="hidden flex items-center justify-center gap-0.5">
-                    <input id="timer-input-min" type="number" inputmode="numeric" placeholder="00" class="w-[38px] h-8 bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900 text-center font-mono text-xl font-bold rounded outline-none focus:ring-2 focus:ring-teal-500/50 p-0 shadow-inner" onfocus="this.select()" oninput="handleMinInput(this)" onblur="checkTimerBlur()" onkeydown="if(event.key==='Enter') saveTimerEdit()">
-                    <span class="text-white dark:text-slate-900 font-mono text-lg font-bold pb-0.5">:</span>
-                    <input id="timer-input-sec" type="number" inputmode="numeric" placeholder="00" class="w-[38px] h-8 bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900 text-center font-mono text-xl font-bold rounded outline-none focus:ring-2 focus:ring-teal-500/50 p-0 shadow-inner" onfocus="this.select()" oninput="handleSecInput(this)" onblur="checkTimerBlur()" onkeydown="if(event.key==='Enter') saveTimerEdit()">
+                <div id="timer-edit-container" class="hidden flex items-center justify-center w-full">
+                    <input id="timer-input-combined" type="text" inputmode="numeric" placeholder="00:00" class="w-[80px] h-8 bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900 text-center font-mono text-xl font-bold rounded outline-none focus:ring-2 focus:ring-teal-500/50 p-0 shadow-inner" oninput="handleCombinedInput(this)" onblur="saveTimerEdit()" onkeydown="if(event.key==='Enter') saveTimerEdit()">
                 </div>
             </div>
             <button onclick="adjustTimer(30)" class="w-10 h-10 rounded-full flex items-center justify-center bg-teal-500/10 text-teal-400 dark:text-teal-600 font-bold active:bg-teal-500/20 touch-manipulation transition-colors">+30</button>
             <div class="w-px h-6 bg-slate-600 dark:bg-slate-300 mx-0.5"></div>
             <button id="timer-play-pause-btn" onclick="togglePlayPause()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-100 flex items-center justify-center text-slate-300 dark:text-slate-700 active:scale-95 touch-manipulation transition-colors">
-                <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /></svg>
-                <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 hidden"><path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" /></svg>
+                <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 hidden"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /></svg>
+                <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" /></svg>
             </button>
             <button onclick="stopTimer()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-100 flex items-center justify-center text-rose-400 dark:text-rose-500 active:scale-95 touch-manipulation transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z" clip-rule="evenodd" /></svg>
@@ -392,13 +389,14 @@
 
         /* ----- ПРОДВИНУТЫЙ ТАЙМЕР + УВЕДОМЛЕНИЯ И WEB WORKER ----- */
         
-        let timerRemaining = 0; 
+        let lastTimerSetting = parseInt(localStorage.getItem('timer_last_setting')) || 90;
+        let timerRemaining = lastTimerSetting; 
+        
         let isTimerRunning = false;
         let isTimerVisible = false;
         let audioCtx = null;
         let worker = null;
 
-        // Создаем Web Worker из строки (это позволяет обходить блокировки фоновых вкладок в мобильных браузерах)
         const workerCode = `
             let timer = null;
             self.onmessage = function(e) {
@@ -424,7 +422,6 @@
             }
         };
 
-        // Инициализация аудиоконтекста при первом тапе (политика браузеров)
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -432,7 +429,6 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        // Синтезируем громкий звуковой сигнал без загрузки внешних файлов
         function playBeep() {
             if (!audioCtx) return;
             
@@ -451,10 +447,9 @@
                 osc.stop(audioCtx.currentTime + timeOffset + duration);
             };
 
-            // Тройной громкий писк
             playTone(0, 880, 0.4);
             playTone(0.5, 880, 0.4);
-            playTone(1.0, 1046.50, 0.6); // Последний звук выше
+            playTone(1.0, 1046.50, 0.6);
         }
 
         function requestNotificationPermission() {
@@ -477,11 +472,9 @@
             if (timerRemaining <= 0 && isTimerRunning) {
                 mainBtn.classList.add('timer-done');
                 
-                // Вибрация и звук
                 if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 500]);
                 playBeep();
                 
-                // Усиленное системное уведомление
                 if ("Notification" in window && Notification.permission === "granted") {
                     try {
                         const iconUrl = document.querySelector('link[rel="icon"]').href;
@@ -490,7 +483,7 @@
                             icon: iconUrl,
                             badge: iconUrl,
                             vibrate: [300, 100, 300],
-                            requireInteraction: true // Заставляет Android показать текст дольше
+                            requireInteraction: true 
                         });
                     } catch (e) {}
                 }
@@ -505,14 +498,14 @@
         }
 
         function startTimer() {
-            initAudio(); // Пробуждаем аудио движок
+            initAudio(); 
             requestNotificationPermission(); 
             
-            if (timerRemaining <= 0) timerRemaining = 90;
+            if (timerRemaining <= 0) timerRemaining = lastTimerSetting; 
             window.timerEndTime = Date.now() + timerRemaining * 1000;
             isTimerRunning = true;
             
-            worker.postMessage('start'); // Запускаем независимый фоновый отсчет
+            worker.postMessage('start'); 
             updateTimerUI();
         }
 
@@ -536,7 +529,7 @@
         }
 
         function adjustTimer(amount) {
-            initAudio(); // Если кликнули на +/- до старта
+            initAudio(); 
             if (navigator.vibrate) navigator.vibrate(10);
             timerRemaining += amount;
             if (timerRemaining < 0) timerRemaining = 0;
@@ -551,7 +544,7 @@
         function stopTimer() {
             if (navigator.vibrate) navigator.vibrate(20);
             pauseTimer();
-            timerRemaining = 0;
+            timerRemaining = lastTimerSetting;
             updateTimerUI();
             document.getElementById('timer-controls').classList.add('hidden');
             isTimerVisible = false;
@@ -559,14 +552,15 @@
 
         function toggleTimer() {
             if (navigator.vibrate) navigator.vibrate(20);
-            initAudio(); // При открытии виджета будим аудио контекст
+            initAudio(); 
             
             const controls = document.getElementById('timer-controls');
             isTimerVisible = !isTimerVisible;
             
             if (isTimerVisible) {
                 controls.classList.remove('hidden');
-                if (!isTimerRunning && timerRemaining === 0) startTimer(); 
+                if (timerRemaining === 0) timerRemaining = lastTimerSetting;
+                updateTimerUI();
             } else {
                 controls.classList.add('hidden');
                 document.getElementById('timer-toggle-btn').classList.remove('timer-done'); 
@@ -576,36 +570,29 @@
         function enableTimerEdit() {
             pauseTimer();
             document.getElementById('timer-display').classList.add('hidden');
-            document.getElementById('timer-edit-container').classList.remove('hidden');
+            const editContainer = document.getElementById('timer-edit-container');
+            editContainer.classList.remove('hidden');
             
-            const minInput = document.getElementById('timer-input-min');
-            const secInput = document.getElementById('timer-input-sec');
+            const combinedInput = document.getElementById('timer-input-combined');
+            combinedInput.value = formatTime(timerRemaining);
+            combinedInput.focus();
             
-            minInput.value = Math.floor(timerRemaining / 60).toString().padStart(2, '0');
-            secInput.value = (timerRemaining % 60).toString().padStart(2, '0');
-            
-            minInput.focus();
+            setTimeout(() => { 
+                combinedInput.setSelectionRange(0, combinedInput.value.length); 
+            }, 10);
         }
 
-        function handleMinInput(el) {
-            if (el.value.length >= 2) {
-                el.value = el.value.slice(0, 2);
-                document.getElementById('timer-input-sec').focus(); 
+        function handleCombinedInput(el) {
+            let val = el.value.replace(/\D/g, '');
+            if (val.length > 4) val = val.slice(-4);
+            
+            if (val.length === 0) {
+                el.value = "";
+                return;
             }
-        }
-
-        function handleSecInput(el) {
-            if (el.value.length > 2) el.value = el.value.slice(0, 2);
-        }
-
-        function checkTimerBlur() {
-            setTimeout(() => {
-                const minEl = document.getElementById('timer-input-min');
-                const secEl = document.getElementById('timer-input-sec');
-                if (document.activeElement !== minEl && document.activeElement !== secEl) {
-                    saveTimerEdit();
-                }
-            }, 50);
+            
+            let padded = val.padStart(4, '0');
+            el.value = padded.slice(0, 2) + ':' + padded.slice(2, 4);
         }
 
         function saveTimerEdit() {
@@ -617,10 +604,26 @@
             display.classList.remove('hidden');
             editContainer.classList.add('hidden');
             
-            let m = parseInt(document.getElementById('timer-input-min').value, 10) || 0;
-            let s = parseInt(document.getElementById('timer-input-sec').value, 10) || 0;
+            const combinedInput = document.getElementById('timer-input-combined');
+            let val = combinedInput.value.replace(/\D/g, '');
+            if (val.length === 0) val = "0000";
+            
+            let padded = val.padStart(4, '0');
+            
+            let m = parseInt(padded.slice(0, 2), 10) || 0;
+            let s = parseInt(padded.slice(2, 4), 10) || 0;
+            
+            if (s >= 60) {
+                m += Math.floor(s / 60);
+                s = s % 60;
+            }
             
             timerRemaining = m * 60 + s;
+            if (timerRemaining <= 0) timerRemaining = 90; 
+            
+            lastTimerSetting = timerRemaining;
+            localStorage.setItem('timer_last_setting', lastTimerSetting);
+
             updateTimerUI();
         }
 
@@ -735,6 +738,8 @@
             updateMetaThemeColor(isDark); 
             renderCards('push', 'push-grid');
             renderCards('pull', 'pull-grid');
+            
+            updateTimerUI();
         });
 
         document.getElementById('history-modal').addEventListener('click', function(e) {
