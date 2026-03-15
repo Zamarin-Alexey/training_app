@@ -87,8 +87,6 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
         }
         .timer-done { animation: timerPulse 1s infinite; background-color: #ef4444 !important; }
-        
-        /* Скрываем стрелки для инпута таймера */
         #timer-input::-webkit-outer-spin-button, #timer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
@@ -158,27 +156,26 @@
     </main>
 
     <div id="timer-widget" class="fixed bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2 transition-all duration-300 translate-y-0">
-        <div id="timer-controls" class="hidden bg-slate-800 dark:bg-white rounded-full shadow-lg p-1.5 flex items-center gap-1.5 border border-slate-700 dark:border-slate-200">
-            
-            <button onclick="adjustTimer(-10)" class="w-10 h-10 rounded-full flex items-center justify-center bg-rose-500/20 text-rose-400 dark:text-rose-600 font-bold active:scale-95 touch-manipulation transition-colors">-10</button>
-            
-            <div class="relative flex items-center justify-center w-[72px]" title="Нажми, чтобы ввести секунды">
+        <div id="timer-controls" class="hidden bg-slate-800 dark:bg-white rounded-full shadow-lg p-1.5 flex items-center gap-1 border border-slate-700 dark:border-slate-200">
+            <button onclick="adjustTimer(-10)" class="w-10 h-10 rounded-full flex items-center justify-center bg-rose-500/10 text-rose-400 dark:text-rose-500 font-bold active:bg-rose-500/20 touch-manipulation transition-colors">-10</button>
+            <div class="relative flex items-center justify-center w-[90px]" title="Нажми, чтобы ввести время">
                 <div id="timer-display" onclick="enableTimerEdit()" class="font-mono text-xl font-bold text-white dark:text-slate-900 cursor-pointer w-full text-center hover:text-teal-400 transition-colors">01:30</div>
-                <input id="timer-input" type="number" pattern="\d*" class="hidden w-full bg-slate-700 dark:bg-slate-100 text-white dark:text-slate-900 text-center font-mono text-xl font-bold rounded py-1 outline-none border border-teal-500/50 focus:border-teal-500" onblur="saveTimerEdit()" onkeydown="if(event.key==='Enter') this.blur()">
+                <div id="timer-edit-container" class="hidden flex items-center justify-center gap-0.5">
+                    <input id="timer-input-min" type="number" inputmode="numeric" placeholder="00" class="w-[38px] h-8 bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900 text-center font-mono text-xl font-bold rounded outline-none focus:ring-2 focus:ring-teal-500/50 p-0 shadow-inner" onfocus="this.select()" oninput="handleMinInput(this)" onblur="checkTimerBlur()" onkeydown="if(event.key==='Enter') saveTimerEdit()">
+                    <span class="text-white dark:text-slate-900 font-mono text-lg font-bold pb-0.5">:</span>
+                    <input id="timer-input-sec" type="number" inputmode="numeric" placeholder="00" class="w-[38px] h-8 bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900 text-center font-mono text-xl font-bold rounded outline-none focus:ring-2 focus:ring-teal-500/50 p-0 shadow-inner" onfocus="this.select()" oninput="handleSecInput(this)" onblur="checkTimerBlur()" onkeydown="if(event.key==='Enter') saveTimerEdit()">
+                </div>
             </div>
-            
-            <button onclick="adjustTimer(30)" class="w-10 h-10 rounded-full flex items-center justify-center bg-teal-500/20 text-teal-400 dark:text-teal-600 font-bold active:scale-95 touch-manipulation transition-colors">+30</button>
-            
-            <div class="w-px h-6 bg-slate-600 dark:bg-slate-300 mx-0.5"></div> <button id="timer-play-pause-btn" onclick="togglePlayPause()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-100 flex items-center justify-center text-slate-300 dark:text-slate-700 active:scale-95 touch-manipulation transition-colors">
+            <button onclick="adjustTimer(30)" class="w-10 h-10 rounded-full flex items-center justify-center bg-teal-500/10 text-teal-400 dark:text-teal-600 font-bold active:bg-teal-500/20 touch-manipulation transition-colors">+30</button>
+            <div class="w-px h-6 bg-slate-600 dark:bg-slate-300 mx-0.5"></div>
+            <button id="timer-play-pause-btn" onclick="togglePlayPause()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-100 flex items-center justify-center text-slate-300 dark:text-slate-700 active:scale-95 touch-manipulation transition-colors">
                 <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /></svg>
                 <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 hidden"><path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" /></svg>
             </button>
-
             <button onclick="stopTimer()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-100 flex items-center justify-center text-rose-400 dark:text-rose-500 active:scale-95 touch-manipulation transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z" clip-rule="evenodd" /></svg>
             </button>
         </div>
-        
         <button id="timer-toggle-btn" onclick="toggleTimer()" class="w-14 h-14 bg-teal-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-teal-500 transition-all active:scale-90 touch-manipulation border-2 border-white dark:border-slate-800 relative z-10">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </button>
@@ -226,6 +223,7 @@
             load: (exId, variantIndex) => { return JSON.parse(localStorage.getItem(Storage.getKey(exId, variantIndex)) || '{"weight":"", "history":[]}'); }
         };
 
+        // Добавил параметры unit и ph (placeholder) для упражнений со своим весом
         const workoutData = {
             push: [
                 { id: "pu_1", muscle: "Квадрицепс (База)", main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени", sets: "4х8-12", target: "150" }, alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу", sets: "3х10-12", target: "70" } },
@@ -234,7 +232,7 @@
                 { id: "pu_4", muscle: "Грудь (Толкающий верх)", main: { name: "Жим гантелей лежа", desc: "Безопасная траектория для плеч", sets: "4х8-10", target: "25" }, alt:  { name: "Жим гантелей (угол 30°)", desc: "Акцент на визуальную ширину", sets: "3х10-12", target: "22.5" } },
                 { id: "pu_5", muscle: "Плечи (Средняя дельта)", main: { name: "Махи гантелями СИДЯ", desc: "Сидя исключаем раскачку поясницы", sets: "3х12-15", target: "12.5" }, alt:  { name: "Отведения на нижнем блоке", desc: "Постоянное напряжение дельты", sets: "3х12-15", target: "15" } },
                 { id: "pu_6", muscle: "Трицепс (Руки)", main: { name: "Разгибания на блоке", desc: "Локти прижаты", sets: "3х12-15", target: "30" }, alt:  { name: "Французский жим гантелями", desc: "Лежа на скамье", sets: "3х10-12", target: "12" } },
-                { id: "pu_7", muscle: "Кор (Антиразгибание)", main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы", sets: "3х60 сек", target: "60" }, alt:  { name: "Мертвый жук (Dead Bug)", desc: "Поясница ВЖАТА в пол", sets: "3х20", target: "10" } }
+                { id: "pu_7", muscle: "Кор (Антиразгибание)", main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы", sets: "3х60 сек", target: "60", unit: "сек", ph: "Время" }, alt:  { name: "Мертвый жук (Dead Bug)", desc: "Поясница ВЖАТА в пол", sets: "3х20", target: "10", unit: "повт", ph: "Повторы" } }
             ],
             pull: [
                 { id: "pl_1", muscle: "Ягодицы (База/Взрыв)", main: { name: "Ягодичный мост (Hip Thrust)", desc: "Мощный толчок тазом вверх", sets: "4х8-12", target: "110" }, alt:  { name: "Тяга блока между ног", desc: "Наклон с прямой спиной", sets: "3х12-15", target: "50" } },
@@ -243,7 +241,7 @@
                 { id: "pl_4", muscle: "Широчайшие (Вертикаль)", main: { name: "Подтягивания (гравитрон)", desc: "Полезная декомпрессия", sets: "3-4х8-10", target: "0" }, alt:  { name: "Вертикальная тяга к груди", desc: "Сводя лопатки", sets: "3х10-12", target: "65" } },
                 { id: "pl_5", muscle: "Задняя дельта (Осанка)", main: { name: "Тяга каната к лицу (Face Pulls)", desc: "Включает вращатели плеча", sets: "3х15", target: "25" }, alt:  { name: "Обратные махи лежа", desc: "На наклонной скамье", sets: "3х12-15", target: "8" } },
                 { id: "pl_6", muscle: "Бицепс (Руки)", main: { name: "Сгибания с гантелями сидя", desc: "С опорой на спинку", sets: "3х10-12", target: "15" }, alt:  { name: "Сгибания на нижнем блоке", desc: "Хват молотком (канат)", sets: "3х12-15", target: "35" } },
-                { id: "pl_7", muscle: "Кор (Антиротация)", main: { name: "Жим Паллофа (на блоке)", desc: "Сопротивляемся боковому натяжению", sets: "3х10-12", target: "20" }, alt:  { name: "Боковая планка", desc: "Тело в прямую линию", sets: "3х45 сек", target: "60" } }
+                { id: "pl_7", muscle: "Кор (Антиротация)", main: { name: "Жим Паллофа (на блоке)", desc: "Сопротивляемся боковому натяжению", sets: "3х10-12", target: "20" }, alt:  { name: "Боковая планка", desc: "Тело в прямую линию", sets: "3х45 сек", target: "60", unit: "сек", ph: "Время" } }
             ]
         };
 
@@ -262,6 +260,10 @@
                 const variantIndex = isAlt ? 'B' : 'A'; 
                 const variantLabel = isAlt ? 'Б' : 'А'; 
                 const savedData = Storage.load(ex.id, variantIndex);
+                
+                // Подтягиваем единицы измерения и плейсхолдеры
+                const unit = currentEx.unit || "кг";
+                const ph = currentEx.ph || "Рабочий вес";
                 
                 const cardBorder = isAlt ? 'border-amber-200 dark:border-amber-700/50' : 'border-slate-200 dark:border-slate-700';
                 const tagColor = isAlt ? 'text-amber-700 dark:text-amber-500' : 'text-teal-700 dark:text-teal-400';
@@ -295,17 +297,18 @@
                                 </div>
                                 <div class="flex flex-col text-right">
                                     <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Цель</span>
-                                    <span class="text-sm font-bold text-teal-600 dark:text-teal-400">${currentEx.target}</span>
+                                    <span class="text-sm font-bold text-teal-600 dark:text-teal-400">${currentEx.target} ${unit}</span>
                                 </div>
                             </div>
                             
                             <div class="flex items-center gap-2 mt-1">
                                 <div class="relative flex-grow">
-                                    <input type="number" inputmode="decimal" placeholder="Рабочий вес/повторы" value="${savedData.weight}" 
+                                    <input type="number" inputmode="decimal" placeholder="${ph}" value="${savedData.weight}" 
                                            onchange="Storage.saveWeight('${ex.id}', '${variantIndex}', this.value)"
-                                           class="w-full py-2.5 px-3 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm">
+                                           class="w-full py-2.5 pl-3 pr-10 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm">
+                                    <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">${unit}</span>
                                 </div>
-                                <button onclick="openHistory('${ex.id}', '${variantIndex}', '${currentEx.name.replace(/'/g, "\\'")}')" class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors shadow-sm focus:outline-none">
+                                <button onclick="openHistory('${ex.id}', '${variantIndex}', '${currentEx.name.replace(/'/g, "\\'")}', '${unit}')" class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors shadow-sm focus:outline-none">
                                     ${historyIcon}
                                 </button>
                             </div>
@@ -355,7 +358,7 @@
         }
 
         /* ----- ИСТОРИЯ ----- */
-        function openHistory(exId, variantIndex, exName) {
+        function openHistory(exId, variantIndex, exName, unit) {
             if (navigator.vibrate) navigator.vibrate(20);
             const data = Storage.load(exId, variantIndex);
             const listContainer = document.getElementById('history-list');
@@ -370,7 +373,7 @@
                     listContainer.insertAdjacentHTML('beforeend', `
                         <div class="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-700/50 last:border-0">
                             <span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span>
-                            <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight}</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit}</span>
                         </div>
                     `);
                 });
@@ -391,8 +394,8 @@
 
         /* ----- ПРОДВИНУТЫЙ ТАЙМЕР НА БАЗЕ Date.now() ----- */
         let timerInterval = null;
-        let timerRemaining = 0; // в секундах
-        let timerEndTime = 0;   // timestamp миллисекунды
+        let timerRemaining = 0; 
+        let timerEndTime = 0;   
         let isTimerRunning = false;
         let isTimerVisible = false;
 
@@ -408,15 +411,13 @@
             
             const mainBtn = document.getElementById('timer-toggle-btn');
             if (timerRemaining <= 0 && isTimerRunning) {
-                // Таймер истек
                 mainBtn.classList.add('timer-done');
                 if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
-                pauseTimer(); // переводим в режим паузы
+                pauseTimer(); 
             } else {
                 mainBtn.classList.remove('timer-done');
             }
 
-            // Переключение иконок плей/пауза
             document.getElementById('icon-pause').classList.toggle('hidden', !isTimerRunning);
             document.getElementById('icon-play').classList.toggle('hidden', isTimerRunning);
         }
@@ -437,7 +438,7 @@
             timerEndTime = Date.now() + timerRemaining * 1000;
             isTimerRunning = true;
             clearInterval(timerInterval);
-            timerInterval = setInterval(timerTick, 200); // 200мс для большей отзывчивости
+            timerInterval = setInterval(timerTick, 200);
             updateTimerUI();
         }
 
@@ -487,37 +488,61 @@
             
             if (isTimerVisible) {
                 controls.classList.remove('hidden');
-                if (!isTimerRunning && timerRemaining === 0) startTimer(); // автостарт при открытии с нуля
+                if (!isTimerRunning && timerRemaining === 0) startTimer(); 
             } else {
                 controls.classList.add('hidden');
-                document.getElementById('timer-toggle-btn').classList.remove('timer-done'); // убираем пульсацию если свернули
+                document.getElementById('timer-toggle-btn').classList.remove('timer-done'); 
             }
         }
 
-        /* Ручной ввод времени */
         function enableTimerEdit() {
             pauseTimer();
-            const display = document.getElementById('timer-display');
-            const input = document.getElementById('timer-input');
+            document.getElementById('timer-display').classList.add('hidden');
+            document.getElementById('timer-edit-container').classList.remove('hidden');
             
-            display.classList.add('hidden');
-            input.classList.remove('hidden');
-            input.value = timerRemaining; 
-            input.focus();
-            input.select();
+            const minInput = document.getElementById('timer-input-min');
+            const secInput = document.getElementById('timer-input-sec');
+            
+            minInput.value = Math.floor(timerRemaining / 60).toString().padStart(2, '0');
+            secInput.value = (timerRemaining % 60).toString().padStart(2, '0');
+            
+            minInput.focus();
+        }
+
+        function handleMinInput(el) {
+            if (el.value.length >= 2) {
+                el.value = el.value.slice(0, 2);
+                document.getElementById('timer-input-sec').focus(); 
+            }
+        }
+
+        function handleSecInput(el) {
+            if (el.value.length > 2) el.value = el.value.slice(0, 2);
+        }
+
+        function checkTimerBlur() {
+            setTimeout(() => {
+                const minEl = document.getElementById('timer-input-min');
+                const secEl = document.getElementById('timer-input-sec');
+                if (document.activeElement !== minEl && document.activeElement !== secEl) {
+                    saveTimerEdit();
+                }
+            }, 50);
         }
 
         function saveTimerEdit() {
             const display = document.getElementById('timer-display');
-            const input = document.getElementById('timer-input');
+            const editContainer = document.getElementById('timer-edit-container');
             
+            if (editContainer.classList.contains('hidden')) return; 
+
             display.classList.remove('hidden');
-            input.classList.add('hidden');
+            editContainer.classList.add('hidden');
             
-            let val = parseInt(input.value, 10);
-            if (!isNaN(val) && val >= 0) {
-                timerRemaining = val;
-            }
+            let m = parseInt(document.getElementById('timer-input-min').value, 10) || 0;
+            let s = parseInt(document.getElementById('timer-input-sec').value, 10) || 0;
+            
+            timerRemaining = m * 60 + s;
             updateTimerUI();
         }
 
@@ -614,6 +639,7 @@
             myChartInstance = new Chart(ctx, config);
         }
 
+        /* ----- ИНИЦИАЛИЗАЦИЯ И ТЕМА ----- */
         const themeToggleBtn = document.getElementById('theme-toggle');
         themeToggleBtn.addEventListener('click', () => {
             if (navigator.vibrate) navigator.vibrate(20);
