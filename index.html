@@ -223,7 +223,7 @@
             load: (exId, variantIndex) => { return JSON.parse(localStorage.getItem(Storage.getKey(exId, variantIndex)) || '{"weight":"", "history":[]}'); }
         };
 
-        // Добавил параметры unit и ph (placeholder) для упражнений со своим весом
+        // Обновлены описания, плейсхолдеры и единицы измерения
         const workoutData = {
             push: [
                 { id: "pu_1", muscle: "Квадрицепс (База)", main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени", sets: "4х8-12", target: "150" }, alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу", sets: "3х10-12", target: "70" } },
@@ -232,7 +232,7 @@
                 { id: "pu_4", muscle: "Грудь (Толкающий верх)", main: { name: "Жим гантелей лежа", desc: "Безопасная траектория для плеч", sets: "4х8-10", target: "25" }, alt:  { name: "Жим гантелей (угол 30°)", desc: "Акцент на визуальную ширину", sets: "3х10-12", target: "22.5" } },
                 { id: "pu_5", muscle: "Плечи (Средняя дельта)", main: { name: "Махи гантелями СИДЯ", desc: "Сидя исключаем раскачку поясницы", sets: "3х12-15", target: "12.5" }, alt:  { name: "Отведения на нижнем блоке", desc: "Постоянное напряжение дельты", sets: "3х12-15", target: "15" } },
                 { id: "pu_6", muscle: "Трицепс (Руки)", main: { name: "Разгибания на блоке", desc: "Локти прижаты", sets: "3х12-15", target: "30" }, alt:  { name: "Французский жим гантелями", desc: "Лежа на скамье", sets: "3х10-12", target: "12" } },
-                { id: "pu_7", muscle: "Кор (Антиразгибание)", main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы", sets: "3х60 сек", target: "60", unit: "сек", ph: "Время" }, alt:  { name: "Мертвый жук (Dead Bug)", desc: "Поясница ВЖАТА в пол", sets: "3х20", target: "10", unit: "повт", ph: "Повторы" } }
+                { id: "pu_7", muscle: "Кор (Антиразгибание)", main: { name: "RKC Планка", desc: "Напрягаем пресс и ягодицы", sets: "3х60 сек", target: "60", unit: "сек", ph: "Время" }, alt:  { name: "Мертвый жук (с отягощением)", desc: "Изометрия: держим гантели (2-4кг) над грудью или тянем нижний блок.", sets: "3х20", target: "5", unit: "кг", ph: "Вес (блок/гантели)" } }
             ],
             pull: [
                 { id: "pl_1", muscle: "Ягодицы (База/Взрыв)", main: { name: "Ягодичный мост (Hip Thrust)", desc: "Мощный толчок тазом вверх", sets: "4х8-12", target: "110" }, alt:  { name: "Тяга блока между ног", desc: "Наклон с прямой спиной", sets: "3х12-15", target: "50" } },
@@ -261,7 +261,6 @@
                 const variantLabel = isAlt ? 'Б' : 'А'; 
                 const savedData = Storage.load(ex.id, variantIndex);
                 
-                // Подтягиваем единицы измерения и плейсхолдеры
                 const unit = currentEx.unit || "кг";
                 const ph = currentEx.ph || "Рабочий вес";
                 
@@ -392,12 +391,18 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        /* ----- ПРОДВИНУТЫЙ ТАЙМЕР НА БАЗЕ Date.now() ----- */
+        /* ----- ПРОДВИНУТЫЙ ТАЙМЕР + УВЕДОМЛЕНИЯ ----- */
         let timerInterval = null;
         let timerRemaining = 0; 
         let timerEndTime = 0;   
         let isTimerRunning = false;
         let isTimerVisible = false;
+
+        function requestNotificationPermission() {
+            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission();
+            }
+        }
 
         function formatTime(seconds) {
             if (seconds < 0) seconds = 0;
@@ -413,6 +418,20 @@
             if (timerRemaining <= 0 && isTimerRunning) {
                 mainBtn.classList.add('timer-done');
                 if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+                
+                // Вызов системного уведомления
+                if ("Notification" in window && Notification.permission === "granted") {
+                    try {
+                        const iconUrl = document.querySelector('link[rel="icon"]').href;
+                        new Notification("Время вышло!", {
+                            body: "Пора начинать следующий подход 💪",
+                            icon: iconUrl,
+                            badge: iconUrl,
+                            vibrate: [300, 100, 300]
+                        });
+                    } catch (e) { console.log("Уведомления не поддерживаются в этом режиме"); }
+                }
+
                 pauseTimer(); 
             } else {
                 mainBtn.classList.remove('timer-done');
@@ -434,6 +453,7 @@
         }
 
         function startTimer() {
+            requestNotificationPermission(); // Спрашиваем разрешение при старте таймера
             if (timerRemaining <= 0) timerRemaining = 90;
             timerEndTime = Date.now() + timerRemaining * 1000;
             isTimerRunning = true;
@@ -639,7 +659,6 @@
             myChartInstance = new Chart(ctx, config);
         }
 
-        /* ----- ИНИЦИАЛИЗАЦИЯ И ТЕМА ----- */
         const themeToggleBtn = document.getElementById('theme-toggle');
         themeToggleBtn.addEventListener('click', () => {
             if (navigator.vibrate) navigator.vibrate(20);
