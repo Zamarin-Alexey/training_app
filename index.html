@@ -452,12 +452,6 @@
             playTone(1.0, 1046.50, 0.6);
         }
 
-        function requestNotificationPermission() {
-            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-                Notification.requestPermission();
-            }
-        }
-
         function formatTime(seconds) {
             if (seconds < 0) seconds = 0;
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -474,19 +468,6 @@
                 
                 if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 500]);
                 playBeep();
-                
-                if ("Notification" in window && Notification.permission === "granted") {
-                    try {
-                        const iconUrl = document.querySelector('link[rel="icon"]').href;
-                        new Notification("⏳ Время вышло!", {
-                            body: "Пора начинать следующий подход!",
-                            icon: iconUrl,
-                            badge: iconUrl,
-                            vibrate: [300, 100, 300],
-                            requireInteraction: true 
-                        });
-                    } catch (e) {}
-                }
 
                 pauseTimer(); 
             } else {
@@ -499,7 +480,6 @@
 
         function startTimer() {
             initAudio(); 
-            requestNotificationPermission(); 
             
             if (timerRemaining <= 0) timerRemaining = lastTimerSetting; 
             window.timerEndTime = Date.now() + timerRemaining * 1000;
