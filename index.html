@@ -223,7 +223,6 @@
             load: (exId, variantIndex) => { return JSON.parse(localStorage.getItem(Storage.getKey(exId, variantIndex)) || '{"weight":"", "history":[]}'); }
         };
 
-        // Обновлены описания, плейсхолдеры и единицы измерения
         const workoutData = {
             push: [
                 { id: "pu_1", muscle: "Квадрицепс (База)", main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени", sets: "4х8-12", target: "150" }, alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу", sets: "3х10-12", target: "70" } },
@@ -391,12 +390,72 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        /* ----- ПРОДВИНУТЫЙ ТАЙМЕР + УВЕДОМЛЕНИЯ ----- */
-        let timerInterval = null;
+        /* ----- ПРОДВИНУТЫЙ ТАЙМЕР + УВЕДОМЛЕНИЯ И WEB WORKER ----- */
+        
         let timerRemaining = 0; 
-        let timerEndTime = 0;   
         let isTimerRunning = false;
         let isTimerVisible = false;
+        let audioCtx = null;
+        let worker = null;
+
+        // Создаем Web Worker из строки (это позволяет обходить блокировки фоновых вкладок в мобильных браузерах)
+        const workerCode = `
+            let timer = null;
+            self.onmessage = function(e) {
+                if (e.data === 'start') {
+                    if(timer) clearInterval(timer);
+                    timer = setInterval(() => self.postMessage('tick'), 250);
+                } else if (e.data === 'stop') {
+                    clearInterval(timer);
+                }
+            };
+        `;
+        const blob = new Blob([workerCode], {type: 'application/javascript'});
+        worker = new Worker(URL.createObjectURL(blob));
+        
+        worker.onmessage = function() {
+            if (!isTimerRunning) return;
+            const now = Date.now();
+            const remaining = Math.max(0, Math.ceil((window.timerEndTime - now) / 1000));
+            
+            if (remaining !== timerRemaining) {
+                timerRemaining = remaining;
+                updateTimerUI();
+            }
+        };
+
+        // Инициализация аудиоконтекста при первом тапе (политика браузеров)
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        // Синтезируем громкий звуковой сигнал без загрузки внешних файлов
+        function playBeep() {
+            if (!audioCtx) return;
+            
+            const playTone = (timeOffset, freq, duration) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + timeOffset);
+                
+                gain.gain.setValueAtTime(1, audioCtx.currentTime + timeOffset);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + timeOffset + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + timeOffset);
+                osc.stop(audioCtx.currentTime + timeOffset + duration);
+            };
+
+            // Тройной громкий писк
+            playTone(0, 880, 0.4);
+            playTone(0.5, 880, 0.4);
+            playTone(1.0, 1046.50, 0.6); // Последний звук выше
+        }
 
         function requestNotificationPermission() {
             if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -417,19 +476,23 @@
             const mainBtn = document.getElementById('timer-toggle-btn');
             if (timerRemaining <= 0 && isTimerRunning) {
                 mainBtn.classList.add('timer-done');
-                if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
                 
-                // Вызов системного уведомления
+                // Вибрация и звук
+                if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 500]);
+                playBeep();
+                
+                // Усиленное системное уведомление
                 if ("Notification" in window && Notification.permission === "granted") {
                     try {
                         const iconUrl = document.querySelector('link[rel="icon"]').href;
-                        new Notification("Время вышло!", {
-                            body: "Пора начинать следующий подход 💪",
+                        new Notification("⏳ Время вышло!", {
+                            body: "Пора начинать следующий подход!",
                             icon: iconUrl,
                             badge: iconUrl,
-                            vibrate: [300, 100, 300]
+                            vibrate: [300, 100, 300],
+                            requireInteraction: true // Заставляет Android показать текст дольше
                         });
-                    } catch (e) { console.log("Уведомления не поддерживаются в этом режиме"); }
+                    } catch (e) {}
                 }
 
                 pauseTimer(); 
@@ -441,33 +504,25 @@
             document.getElementById('icon-play').classList.toggle('hidden', isTimerRunning);
         }
 
-        function timerTick() {
-            if (!isTimerRunning) return;
-            const now = Date.now();
-            const remaining = Math.max(0, Math.ceil((timerEndTime - now) / 1000));
-            
-            if (remaining !== timerRemaining) {
-                timerRemaining = remaining;
-                updateTimerUI();
-            }
-        }
-
         function startTimer() {
-            requestNotificationPermission(); // Спрашиваем разрешение при старте таймера
+            initAudio(); // Пробуждаем аудио движок
+            requestNotificationPermission(); 
+            
             if (timerRemaining <= 0) timerRemaining = 90;
-            timerEndTime = Date.now() + timerRemaining * 1000;
+            window.timerEndTime = Date.now() + timerRemaining * 1000;
             isTimerRunning = true;
-            clearInterval(timerInterval);
-            timerInterval = setInterval(timerTick, 200);
+            
+            worker.postMessage('start'); // Запускаем независимый фоновый отсчет
             updateTimerUI();
         }
 
         function pauseTimer() {
             isTimerRunning = false;
-            clearInterval(timerInterval);
+            worker.postMessage('stop');
+            
             const now = Date.now();
-            if (timerEndTime > now) {
-                timerRemaining = Math.ceil((timerEndTime - now) / 1000);
+            if (window.timerEndTime && window.timerEndTime > now) {
+                timerRemaining = Math.ceil((window.timerEndTime - now) / 1000);
             } else {
                 timerRemaining = 0;
             }
@@ -481,12 +536,13 @@
         }
 
         function adjustTimer(amount) {
+            initAudio(); // Если кликнули на +/- до старта
             if (navigator.vibrate) navigator.vibrate(10);
             timerRemaining += amount;
             if (timerRemaining < 0) timerRemaining = 0;
             
             if (isTimerRunning) {
-                timerEndTime += amount * 1000;
+                window.timerEndTime += amount * 1000;
                 if (timerRemaining === 0) pauseTimer();
             }
             updateTimerUI();
@@ -503,6 +559,8 @@
 
         function toggleTimer() {
             if (navigator.vibrate) navigator.vibrate(20);
+            initAudio(); // При открытии виджета будим аудио контекст
+            
             const controls = document.getElementById('timer-controls');
             isTimerVisible = !isTimerVisible;
             
@@ -659,6 +717,7 @@
             myChartInstance = new Chart(ctx, config);
         }
 
+        /* ----- ИНИЦИАЛИЗАЦИЯ И ТЕМА ----- */
         const themeToggleBtn = document.getElementById('theme-toggle');
         themeToggleBtn.addEventListener('click', () => {
             if (navigator.vibrate) navigator.vibrate(20);
