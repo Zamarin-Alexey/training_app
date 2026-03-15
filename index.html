@@ -77,14 +77,19 @@
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .safe-pb { padding-bottom: env(safe-area-inset-bottom, 2rem); }
+        
         input[type="number"] { -moz-appearance: textfield; }
         input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
         @keyframes timerPulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
             70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
         }
         .timer-done { animation: timerPulse 1s infinite; background-color: #ef4444 !important; }
+        
+        /* Скрываем стрелки для инпута таймера */
+        #timer-input::-webkit-outer-spin-button, #timer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 antialiased selection:bg-teal-200 dark:selection:bg-teal-900">
@@ -129,23 +134,18 @@
                     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Живой график прогресса</h3>
                     <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">График автоматически подтягивает веса из твоих записей в карточках.</p>
                 </div>
-                
                 <div class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-6 transition-colors duration-300">
-                    <div class="chart-container">
-                        <canvas id="progressChart"></canvas>
-                    </div>
+                    <div class="chart-container"><canvas id="progressChart"></canvas></div>
                 </div>
 
                 <div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-300 mt-8">
                     <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Резервное копирование</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">Сохрани свои данные в файл, чтобы не потерять их при очистке кэша или смене устройства.</p>
-                    
                     <div class="flex gap-3">
                         <button onclick="exportData()" class="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                             Экспорт
                         </button>
-                        
                         <label class="flex-1 py-2.5 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm cursor-pointer touch-manipulation">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
                             Импорт
@@ -158,15 +158,28 @@
     </main>
 
     <div id="timer-widget" class="fixed bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2 transition-all duration-300 translate-y-0">
-        <div id="timer-controls" class="hidden bg-slate-800 dark:bg-slate-100 rounded-full shadow-lg p-1.5 flex items-center gap-1">
-            <button onclick="adjustTimer(-10)" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-700 font-bold active:bg-slate-700 dark:active:bg-slate-300 touch-manipulation">-10</button>
-            <div id="timer-display" class="font-mono text-xl font-bold px-2 text-white dark:text-slate-900 w-16 text-center">01:30</div>
-            <button onclick="adjustTimer(30)" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-700 font-bold active:bg-slate-700 dark:active:bg-slate-300 touch-manipulation">+30</button>
-            <button onclick="stopTimer()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-300 flex items-center justify-center text-red-400 dark:text-red-500 font-bold active:scale-95 touch-manipulation">
+        <div id="timer-controls" class="hidden bg-slate-800 dark:bg-white rounded-full shadow-lg p-1.5 flex items-center gap-1.5 border border-slate-700 dark:border-slate-200">
+            
+            <button onclick="adjustTimer(-10)" class="w-10 h-10 rounded-full flex items-center justify-center bg-rose-500/20 text-rose-400 dark:text-rose-600 font-bold active:scale-95 touch-manipulation transition-colors">-10</button>
+            
+            <div class="relative flex items-center justify-center w-[72px]" title="Нажми, чтобы ввести секунды">
+                <div id="timer-display" onclick="enableTimerEdit()" class="font-mono text-xl font-bold text-white dark:text-slate-900 cursor-pointer w-full text-center hover:text-teal-400 transition-colors">01:30</div>
+                <input id="timer-input" type="number" pattern="\d*" class="hidden w-full bg-slate-700 dark:bg-slate-100 text-white dark:text-slate-900 text-center font-mono text-xl font-bold rounded py-1 outline-none border border-teal-500/50 focus:border-teal-500" onblur="saveTimerEdit()" onkeydown="if(event.key==='Enter') this.blur()">
+            </div>
+            
+            <button onclick="adjustTimer(30)" class="w-10 h-10 rounded-full flex items-center justify-center bg-teal-500/20 text-teal-400 dark:text-teal-600 font-bold active:scale-95 touch-manipulation transition-colors">+30</button>
+            
+            <div class="w-px h-6 bg-slate-600 dark:bg-slate-300 mx-0.5"></div> <button id="timer-play-pause-btn" onclick="togglePlayPause()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-100 flex items-center justify-center text-slate-300 dark:text-slate-700 active:scale-95 touch-manipulation transition-colors">
+                <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /></svg>
+                <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 hidden"><path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" /></svg>
+            </button>
+
+            <button onclick="stopTimer()" class="w-10 h-10 rounded-full bg-slate-700 dark:bg-slate-100 flex items-center justify-center text-rose-400 dark:text-rose-500 active:scale-95 touch-manipulation transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z" clip-rule="evenodd" /></svg>
             </button>
         </div>
-        <button id="timer-toggle-btn" onclick="toggleTimer()" class="w-14 h-14 bg-teal-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-teal-500 transition-all active:scale-90 touch-manipulation border-2 border-white dark:border-slate-800">
+        
+        <button id="timer-toggle-btn" onclick="toggleTimer()" class="w-14 h-14 bg-teal-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-teal-500 transition-all active:scale-90 touch-manipulation border-2 border-white dark:border-slate-800 relative z-10">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </button>
     </div>
@@ -174,7 +187,7 @@
     <div id="history-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="history-modal-content">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                <h3 class="font-bold text-slate-900 dark:text-white" id="history-title">История весов</h3>
+                <h3 class="font-bold text-slate-900 dark:text-white" id="history-title">История</h3>
                 <button onclick="closeHistory()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full active:bg-slate-100 dark:active:bg-slate-700 transition-colors focus:outline-none">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
@@ -191,7 +204,6 @@
 
         const Storage = {
             getKey: (exId, variantIndex) => `freeride_${exId}_${variantIndex}`,
-            
             saveWeight: (exId, variantIndex, newWeight) => {
                 const key = Storage.getKey(exId, variantIndex);
                 let data = JSON.parse(localStorage.getItem(key) || '{"weight":"", "history":[]}');
@@ -207,15 +219,11 @@
                         data.history.push({ date: today, weight: newWeight });
                     }
                 }
-                
                 data.weight = newWeight;
                 localStorage.setItem(key, JSON.stringify(data));
                 if (myChartInstance && document.getElementById('targets').classList.contains('hidden') === false) renderChart(); 
             },
-            
-            load: (exId, variantIndex) => {
-                return JSON.parse(localStorage.getItem(Storage.getKey(exId, variantIndex)) || '{"weight":"", "history":[]}');
-            }
+            load: (exId, variantIndex) => { return JSON.parse(localStorage.getItem(Storage.getKey(exId, variantIndex)) || '{"weight":"", "history":[]}'); }
         };
 
         const workoutData = {
@@ -287,16 +295,15 @@
                                 </div>
                                 <div class="flex flex-col text-right">
                                     <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Цель</span>
-                                    <span class="text-sm font-bold text-teal-600 dark:text-teal-400">${currentEx.target} кг</span>
+                                    <span class="text-sm font-bold text-teal-600 dark:text-teal-400">${currentEx.target}</span>
                                 </div>
                             </div>
                             
                             <div class="flex items-center gap-2 mt-1">
                                 <div class="relative flex-grow">
-                                    <input type="number" inputmode="decimal" placeholder="Рабочий вес" value="${savedData.weight}" 
+                                    <input type="number" inputmode="decimal" placeholder="Рабочий вес/повторы" value="${savedData.weight}" 
                                            onchange="Storage.saveWeight('${ex.id}', '${variantIndex}', this.value)"
-                                           class="w-full py-2.5 pl-3 pr-8 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm">
-                                    <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">кг</span>
+                                           class="w-full py-2.5 px-3 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm">
                                 </div>
                                 <button onclick="openHistory('${ex.id}', '${variantIndex}', '${currentEx.name.replace(/'/g, "\\'")}')" class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors shadow-sm focus:outline-none">
                                     ${historyIcon}
@@ -315,59 +322,35 @@
             const exportObj = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key.startsWith('freeride_')) {
-                    exportObj[key] = JSON.parse(localStorage.getItem(key));
-                }
+                if (key.startsWith('freeride_')) exportObj[key] = JSON.parse(localStorage.getItem(key));
             }
-            
-            if (Object.keys(exportObj).length === 0) {
-                alert("Нет данных для сохранения. Сначала запиши пару весов!");
-                return;
-            }
-
+            if (Object.keys(exportObj).length === 0) { alert("Нет данных для сохранения."); return; }
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
             downloadAnchorNode.setAttribute("download", "workout_backup.json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
+            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
         }
 
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const importedData = JSON.parse(e.target.result);
                     let importedCount = 0;
-                    
                     for (const key in importedData) {
-                        if (key.startsWith('freeride_')) {
-                            localStorage.setItem(key, JSON.stringify(importedData[key]));
-                            importedCount++;
-                        }
+                        if (key.startsWith('freeride_')) { localStorage.setItem(key, JSON.stringify(importedData[key])); importedCount++; }
                     }
-
                     if (importedCount > 0) {
                         alert(`Успешно восстановлено ${importedCount} записей!`);
-                        // Обновляем интерфейс
-                        renderCards('push', 'push-grid');
-                        renderCards('pull', 'pull-grid');
-                        if (myChartInstance && document.getElementById('targets').classList.contains('hidden') === false) {
-                            renderChart();
-                        }
-                    } else {
-                        alert("В файле не найдено данных тренировок.");
+                        renderCards('push', 'push-grid'); renderCards('pull', 'pull-grid');
+                        if (myChartInstance && !document.getElementById('targets').classList.contains('hidden')) renderChart();
                     }
-                } catch (error) {
-                    alert("Ошибка чтения файла. Убедись, что это правильный JSON.");
-                }
+                } catch (error) { alert("Ошибка чтения файла."); }
             };
             reader.readAsText(file);
-            // Сбрасываем input, чтобы можно было загрузить тот же файл еще раз, если нужно
             event.target.value = '';
         }
 
@@ -377,17 +360,17 @@
             const data = Storage.load(exId, variantIndex);
             const listContainer = document.getElementById('history-list');
             document.getElementById('history-title').innerText = exName;
-            
             listContainer.innerHTML = '';
+            
             if (!data.history || data.history.length === 0) {
-                listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый вес!</div>';
+                listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый результат!</div>';
             } else {
                 const reversedHistory = [...data.history].reverse();
                 reversedHistory.forEach(item => {
                     listContainer.insertAdjacentHTML('beforeend', `
                         <div class="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-700/50 last:border-0">
                             <span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span>
-                            <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} кг</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight}</span>
                         </div>
                     `);
                 });
@@ -406,57 +389,136 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        /* ----- ТАЙМЕР ----- */
+        /* ----- ПРОДВИНУТЫЙ ТАЙМЕР НА БАЗЕ Date.now() ----- */
         let timerInterval = null;
-        let timerSeconds = 0;
-        let isTimerActive = false;
+        let timerRemaining = 0; // в секундах
+        let timerEndTime = 0;   // timestamp миллисекунды
+        let isTimerRunning = false;
+        let isTimerVisible = false;
+
+        function formatTime(seconds) {
+            if (seconds < 0) seconds = 0;
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
 
         function updateTimerUI() {
-            const min = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-            const sec = (timerSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${min}:${sec}`;
+            document.getElementById('timer-display').innerText = formatTime(timerRemaining);
             
-            const btn = document.getElementById('timer-toggle-btn');
-            if (timerSeconds === 0 && isTimerActive) {
-                btn.classList.add('timer-done');
-                if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]); 
+            const mainBtn = document.getElementById('timer-toggle-btn');
+            if (timerRemaining <= 0 && isTimerRunning) {
+                // Таймер истек
+                mainBtn.classList.add('timer-done');
+                if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+                pauseTimer(); // переводим в режим паузы
             } else {
-                btn.classList.remove('timer-done');
+                mainBtn.classList.remove('timer-done');
+            }
+
+            // Переключение иконок плей/пауза
+            document.getElementById('icon-pause').classList.toggle('hidden', !isTimerRunning);
+            document.getElementById('icon-play').classList.toggle('hidden', isTimerRunning);
+        }
+
+        function timerTick() {
+            if (!isTimerRunning) return;
+            const now = Date.now();
+            const remaining = Math.max(0, Math.ceil((timerEndTime - now) / 1000));
+            
+            if (remaining !== timerRemaining) {
+                timerRemaining = remaining;
+                updateTimerUI();
             }
         }
 
-        function toggleTimer() {
-            if (navigator.vibrate) navigator.vibrate(20);
-            const controls = document.getElementById('timer-controls');
-            if (controls.classList.contains('hidden')) {
-                controls.classList.remove('hidden');
-                if (!isTimerActive && timerSeconds === 0) {
-                    timerSeconds = 90;
-                    isTimerActive = true;
-                    updateTimerUI();
-                    timerInterval = setInterval(() => { if (timerSeconds > 0) { timerSeconds--; updateTimerUI(); } }, 1000);
-                }
-            } else { controls.classList.add('hidden'); }
+        function startTimer() {
+            if (timerRemaining <= 0) timerRemaining = 90;
+            timerEndTime = Date.now() + timerRemaining * 1000;
+            isTimerRunning = true;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(timerTick, 200); // 200мс для большей отзывчивости
+            updateTimerUI();
+        }
+
+        function pauseTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            const now = Date.now();
+            if (timerEndTime > now) {
+                timerRemaining = Math.ceil((timerEndTime - now) / 1000);
+            } else {
+                timerRemaining = 0;
+            }
+            updateTimerUI();
+        }
+
+        function togglePlayPause() {
+            if (navigator.vibrate) navigator.vibrate(10);
+            if (isTimerRunning) pauseTimer();
+            else startTimer();
         }
 
         function adjustTimer(amount) {
             if (navigator.vibrate) navigator.vibrate(10);
-            timerSeconds += amount;
-            if (timerSeconds < 0) timerSeconds = 0;
-            if (timerSeconds > 0 && timerSeconds === amount && !isTimerActive) {
-                isTimerActive = true;
-                timerInterval = setInterval(() => { if (timerSeconds > 0) { timerSeconds--; updateTimerUI(); } }, 1000);
+            timerRemaining += amount;
+            if (timerRemaining < 0) timerRemaining = 0;
+            
+            if (isTimerRunning) {
+                timerEndTime += amount * 1000;
+                if (timerRemaining === 0) pauseTimer();
             }
             updateTimerUI();
         }
 
         function stopTimer() {
             if (navigator.vibrate) navigator.vibrate(20);
-            clearInterval(timerInterval);
-            timerSeconds = 0; isTimerActive = false;
+            pauseTimer();
+            timerRemaining = 0;
             updateTimerUI();
             document.getElementById('timer-controls').classList.add('hidden');
-            document.getElementById('timer-toggle-btn').classList.remove('timer-done');
+            isTimerVisible = false;
+        }
+
+        function toggleTimer() {
+            if (navigator.vibrate) navigator.vibrate(20);
+            const controls = document.getElementById('timer-controls');
+            isTimerVisible = !isTimerVisible;
+            
+            if (isTimerVisible) {
+                controls.classList.remove('hidden');
+                if (!isTimerRunning && timerRemaining === 0) startTimer(); // автостарт при открытии с нуля
+            } else {
+                controls.classList.add('hidden');
+                document.getElementById('timer-toggle-btn').classList.remove('timer-done'); // убираем пульсацию если свернули
+            }
+        }
+
+        /* Ручной ввод времени */
+        function enableTimerEdit() {
+            pauseTimer();
+            const display = document.getElementById('timer-display');
+            const input = document.getElementById('timer-input');
+            
+            display.classList.add('hidden');
+            input.classList.remove('hidden');
+            input.value = timerRemaining; 
+            input.focus();
+            input.select();
+        }
+
+        function saveTimerEdit() {
+            const display = document.getElementById('timer-display');
+            const input = document.getElementById('timer-input');
+            
+            display.classList.remove('hidden');
+            input.classList.add('hidden');
+            
+            let val = parseInt(input.value, 10);
+            if (!isNaN(val) && val >= 0) {
+                timerRemaining = val;
+            }
+            updateTimerUI();
         }
 
         /* ----- НАВИГАЦИЯ И UI ----- */
@@ -552,7 +614,6 @@
             myChartInstance = new Chart(ctx, config);
         }
 
-        /* ----- ИНИЦИАЛИЗАЦИЯ И ТЕМА ----- */
         const themeToggleBtn = document.getElementById('theme-toggle');
         themeToggleBtn.addEventListener('click', () => {
             if (navigator.vibrate) navigator.vibrate(20);
