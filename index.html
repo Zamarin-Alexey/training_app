@@ -87,19 +87,25 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
         }
         .timer-done { animation: timerPulse 1s infinite; background-color: #ef4444 !important; }
+        
+        /* Стили для режима редактирования */
+        .edit-mode-active { border-color: #f59e0b !important; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 antialiased selection:bg-teal-200 dark:selection:bg-teal-900">
 
     <header class="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 relative">
-            <div class="absolute right-4 top-2 sm:right-6 z-30">
+            <div class="absolute right-4 top-2 sm:right-6 z-30 flex items-center gap-2">
+                <button id="edit-mode-toggle" onclick="toggleEditMode()" class="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none touch-manipulation shadow-sm flex items-center gap-1" title="Режим редактирования">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.683-12.683z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125L16.875 4.5" /></svg>
+                </button>
                 <button id="theme-toggle" class="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none touch-manipulation shadow-sm">
                     <span id="theme-icon-light" class="block dark:hidden text-lg leading-none">🌙</span>
                     <span id="theme-icon-dark" class="hidden dark:block text-lg leading-none">☀️</span>
                 </button>
             </div>
-            <nav class="flex overflow-x-auto no-scrollbar space-x-6 pb-1 mt-1 pr-16 sm:pr-0 -mx-4 px-4 sm:mx-0 sm:px-0" id="main-nav">
+            <nav class="flex overflow-x-auto no-scrollbar space-x-6 pb-1 mt-1 pr-28 sm:pr-0 -mx-4 px-4 sm:mx-0 sm:px-0" id="main-nav">
                 <button class="pb-2 whitespace-nowrap tab-active transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="push">День 1: Толкай</button>
                 <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="pull">День 2: Тяни</button>
                 <button class="pb-2 whitespace-nowrap tab-inactive transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation" data-target="targets">Прогресс</button>
@@ -116,6 +122,9 @@
                     <button id="push-btn-B" onclick="setAllVariant('push', true, 'push-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Вариант Б</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="push-grid"></div>
+                <button onclick="addExercise('push')" class="edit-only hidden mt-6 w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-slate-500 hover:text-teal-600 hover:border-teal-500 transition-colors font-bold flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg> Добавить упражнение
+                </button>
             </div>
 
             <div id="pull" class="view-section hidden fade-in">
@@ -124,6 +133,9 @@
                     <button id="pull-btn-B" onclick="setAllVariant('pull', true, 'pull-grid')" class="flex-1 py-2.5 text-sm md:text-base font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-300 touch-manipulation">Вариант Б</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="pull-grid"></div>
+                <button onclick="addExercise('pull')" class="edit-only hidden mt-6 w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-slate-500 hover:text-teal-600 hover:border-teal-500 transition-colors font-bold flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg> Добавить упражнение
+                </button>
             </div>
 
             <div id="targets" class="view-section hidden fade-in">
@@ -135,19 +147,41 @@
                     <div class="chart-container"><canvas id="progressChart"></canvas></div>
                 </div>
 
-                <div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-300 mt-8">
+                <div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-300 mt-8 relative">
+                    <div id="backup-warning" class="hidden absolute -top-3 -right-3 flex items-center justify-center w-6 h-6 bg-rose-500 text-white rounded-full shadow-lg">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative text-xs font-bold">!</span>
+                    </div>
+
                     <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Резервное копирование</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">Сохрани свои данные в файл, чтобы не потерять их при очистке кэша или смене устройства.</p>
-                    <div class="flex gap-3">
-                        <button onclick="exportData()" class="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                            Экспорт
-                        </button>
-                        <label class="flex-1 py-2.5 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm cursor-pointer touch-manipulation">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
-                            Импорт
-                            <input type="file" accept=".json" class="hidden" onchange="importData(event)">
-                        </label>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+                        Все данные <b class="text-teal-600 dark:text-teal-400">автоматически сохраняются</b> в телефоне каждую секунду. <br>
+                        Делайте бэкап раз в неделю, чтобы не потерять их при очистке кэша браузера.
+                    </p>
+                    
+                    <div class="flex flex-col gap-3">
+                        <div class="flex gap-3">
+                            <button onclick="copyDataToClipboard()" class="flex-1 py-2.5 bg-slate-800 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>
+                                Копировать код
+                            </button>
+                            <button onclick="importDataFromClipboard()" class="flex-1 py-2.5 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" /></svg>
+                                Вставить код
+                            </button>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="exportData()" class="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                Скачать файл
+                            </button>
+                            <label class="flex-1 py-2.5 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm cursor-pointer touch-manipulation">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                                Открыть файл
+                                <input type="file" accept=".json" class="hidden" onchange="importData(event)">
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,14 +213,68 @@
     </div>
 
     <div id="history-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="history-modal-content">
-            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[80vh]" id="history-modal-content">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0">
                 <h3 class="font-bold text-slate-900 dark:text-white" id="history-title">История</h3>
                 <button onclick="closeHistory()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full active:bg-slate-100 dark:active:bg-slate-700 transition-colors focus:outline-none">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-            <div class="p-4 max-h-[60vh] overflow-y-auto no-scrollbar" id="history-list"></div>
+            <div class="p-4 overflow-y-auto no-scrollbar flex-grow" id="history-list"></div>
+        </div>
+    </div>
+
+    <div id="edit-ex-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="edit-ex-modal-content">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0">
+                <h3 class="font-bold text-slate-900 dark:text-white">Редактирование</h3>
+                <button onclick="closeEditModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full active:bg-slate-100 dark:active:bg-slate-700 transition-colors focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto no-scrollbar flex-grow flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Мышечная группа</label>
+                    <input type="text" id="edit-ex-muscle" class="w-full p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Название упражнения</label>
+                    <input type="text" id="edit-ex-name" class="w-full p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 text-sm font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Описание / Советы</label>
+                    <textarea id="edit-ex-desc" rows="3" class="w-full p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 text-sm"></textarea>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Сеты и повторы</label>
+                        <input type="text" id="edit-ex-sets" placeholder="напр. 3х10-12" class="w-full p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 text-sm">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Целевой вес</label>
+                        <input type="number" id="edit-ex-target" class="w-full p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 text-sm">
+                    </div>
+                </div>
+                <div class="mt-2 flex items-center gap-2 p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg border border-teal-100 dark:border-teal-800/50">
+                    <input type="checkbox" id="edit-ex-chart" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500">
+                    <label for="edit-ex-chart" class="text-sm font-bold text-teal-800 dark:text-teal-300 cursor-pointer">Показывать на графике прогресса</label>
+                </div>
+                
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 mt-2">
+                    <button onclick="swapVariants()" class="w-full py-2.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold rounded-lg flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-teal-600 dark:text-teal-400"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" /></svg>
+                        Поменять местами Варианты А и Б
+                    </button>
+                    <p class="text-[10px] text-slate-400 text-center mt-1.5 leading-tight">Вариант А станет Вариантом Б и наоборот. История их весов также поменяется местами.</p>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between gap-3 bg-slate-50 dark:bg-slate-800/50 flex-shrink-0">
+                <button onclick="deleteExercise()" class="py-2.5 px-4 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm font-bold rounded-lg hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors shadow-sm">Удалить</button>
+                <div class="flex gap-3">
+                    <button onclick="closeEditModal()" class="py-2.5 px-4 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-lg transition-colors shadow-sm">Отмена</button>
+                    <button onclick="saveEditModal()" class="py-2.5 px-5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-lg transition-colors shadow-sm">Сохранить</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -196,6 +284,7 @@
             if (metaTheme) metaTheme.setAttribute('content', isDark ? '#0f172a' : '#f8fafc');
         }
 
+        /* ----- ДАННЫЕ И НАСТРОЙКИ ----- */
         const Storage = {
             getKey: (exId, variantIndex) => `freeride_${exId}_${variantIndex}`,
             saveWeight: (exId, variantIndex, newWeight) => {
@@ -220,7 +309,7 @@
             load: (exId, variantIndex) => { return JSON.parse(localStorage.getItem(Storage.getKey(exId, variantIndex)) || '{"weight":"", "history":[]}'); }
         };
 
-        const workoutData = {
+        const defaultWorkoutData = {
             push: [
                 { id: "pu_1", muscle: "Квадрицепс (База)", main: { name: "Жим ногами в тренажере", desc: "Амортизируем вес, не выпрямляем колени", sets: "4х8-12", target: "150" }, alt:  { name: "Жим по одной ноге", desc: "Критично для приземлений на одну ногу", sets: "3х10-12", target: "70" } },
                 { id: "pu_2", muscle: "Квадрицепс / Баланс", main: { name: "Болгарский сплит-присед", desc: "Гантели в опущенных руках", sets: "3х8-10", target: "17.5" }, alt:  { name: "Выпады назад с гантелями", desc: "Щадящий вариант для коленей", sets: "3х10-12", target: "20" } },
@@ -241,14 +330,45 @@
             ]
         };
 
+        let workoutData = JSON.parse(localStorage.getItem('user_workout_data'));
+        if (!workoutData) {
+            workoutData = defaultWorkoutData;
+            localStorage.setItem('user_workout_data', JSON.stringify(workoutData));
+        }
+
+        let chartConfig = JSON.parse(localStorage.getItem('chart_config')) || ['pu_1_A', 'pu_4_A', 'pl_1_A', 'pl_3_A'];
         const exerciseState = {};
         let myChartInstance = null;
+        let isEditMode = false;
+
+        /* ----- РЕЖИМ РЕДАКТИРОВАНИЯ И РЕНДЕР КАРТОЧЕК ----- */
+        function toggleEditMode() {
+            if (navigator.vibrate) navigator.vibrate(20);
+            isEditMode = !isEditMode;
+            
+            const toggleBtn = document.getElementById('edit-mode-toggle');
+            if(isEditMode) {
+                toggleBtn.classList.add('bg-amber-100', 'text-amber-600', 'dark:bg-amber-900/50', 'dark:text-amber-400');
+                toggleBtn.classList.remove('bg-slate-100', 'text-slate-600', 'dark:bg-slate-800', 'dark:text-slate-300');
+            } else {
+                toggleBtn.classList.remove('bg-amber-100', 'text-amber-600', 'dark:bg-amber-900/50', 'dark:text-amber-400');
+                toggleBtn.classList.add('bg-slate-100', 'text-slate-600', 'dark:bg-slate-800', 'dark:text-slate-300');
+            }
+
+            document.querySelectorAll('.edit-only').forEach(el => {
+                if(isEditMode) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+
+            renderCards('push', 'push-grid');
+            renderCards('pull', 'pull-grid');
+        }
 
         function renderCards(dayId, containerId) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
 
-            workoutData[dayId].forEach((ex) => {
+            workoutData[dayId].forEach((ex, index) => {
                 if (typeof exerciseState[ex.id] === 'undefined') exerciseState[ex.id] = false;
                 
                 const isAlt = exerciseState[ex.id];
@@ -260,21 +380,31 @@
                 const unit = currentEx.unit || "кг";
                 const ph = currentEx.ph || "Рабочий вес";
                 
-                const cardBorder = isAlt ? 'border-amber-200 dark:border-amber-700/50' : 'border-slate-200 dark:border-slate-700';
+                let cardBorder = isAlt ? 'border-amber-200 dark:border-amber-700/50' : 'border-slate-200 dark:border-slate-700';
+                if (isEditMode) cardBorder = 'border-amber-400 dark:border-amber-500 shadow-md ring-2 ring-amber-400/20';
+
                 const tagColor = isAlt ? 'text-amber-700 dark:text-amber-500' : 'text-teal-700 dark:text-teal-400';
                 const variantBadgeClass = isAlt ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
                 
                 const swapIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>`;
                 const historyIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                const editSettingsIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
+
+                const editBtnHtml = isEditMode ? `
+                    <button onclick="openEditModal('${dayId}', ${index}, ${isAlt})" class="absolute -top-3 -right-3 w-10 h-10 bg-amber-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-amber-600 transition-colors z-10 border-2 border-white dark:border-slate-800">
+                        ${editSettingsIcon}
+                    </button>
+                ` : '';
 
                 const cardHtml = `
                     <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border ${cardBorder} flex flex-col h-full transition-colors duration-300 relative group">
+                        ${editBtnHtml}
                         <div class="flex justify-between items-start mb-3">
-                            <div class="flex flex-col gap-1.5">
+                            <div class="flex flex-col gap-1.5 pr-6">
                                 <span class="text-[10px] md:text-xs font-black uppercase tracking-wider ${tagColor}">${ex.muscle}</span>
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded w-max transition-colors ${variantBadgeClass}">Вариант ${variantLabel}</span>
                             </div>
-                            <button onclick="toggleExercise('${dayId}', '${ex.id}', '${containerId}')" class="p-2 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-full text-slate-500 dark:text-slate-300 transition-all touch-manipulation active:scale-90 focus:outline-none">
+                            <button onclick="toggleExercise('${dayId}', '${ex.id}', '${containerId}')" class="p-2 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-full text-slate-500 dark:text-slate-300 transition-all touch-manipulation active:scale-90 focus:outline-none flex-shrink-0">
                                 ${swapIcon}
                             </button>
                         </div>
@@ -300,7 +430,8 @@
                                 <div class="relative flex-grow">
                                     <input type="number" inputmode="decimal" placeholder="${ph}" value="${savedData.weight}" 
                                            onchange="Storage.saveWeight('${ex.id}', '${variantIndex}', this.value)"
-                                           class="w-full py-2.5 pl-3 pr-10 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm">
+                                           ${isEditMode ? 'disabled' : ''}
+                                           class="w-full py-2.5 pl-3 pr-10 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm disabled:opacity-50">
                                     <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">${unit}</span>
                                 </div>
                                 <button onclick="openHistory('${ex.id}', '${variantIndex}', '${currentEx.name.replace(/'/g, "\\'")}', '${unit}')" class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors shadow-sm focus:outline-none">
@@ -314,47 +445,140 @@
             });
         }
 
-        /* ----- ЭКСПОРТ И ИМПОРТ ----- */
-        function exportData() {
-            if (navigator.vibrate) navigator.vibrate(20);
-            const exportObj = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('freeride_')) exportObj[key] = JSON.parse(localStorage.getItem(key));
+        /* ----- ЛОГИКА РЕДАКТИРОВАНИЯ ДАННЫХ ----- */
+        let currentEditEx = null; 
+
+        function openEditModal(dayId, exIndex, isAlt) {
+            currentEditEx = { dayId, exIndex, isAlt };
+            const ex = workoutData[dayId][exIndex];
+            const variant = isAlt ? ex.alt : ex.main;
+            const variantIndex = isAlt ? 'B' : 'A';
+            const configKey = `${ex.id}_${variantIndex}`;
+
+            document.getElementById('edit-ex-muscle').value = ex.muscle;
+            document.getElementById('edit-ex-name').value = variant.name;
+            document.getElementById('edit-ex-desc').value = variant.desc;
+            document.getElementById('edit-ex-sets').value = variant.sets;
+            document.getElementById('edit-ex-target').value = variant.target;
+            
+            document.getElementById('edit-ex-chart').checked = chartConfig.includes(configKey);
+
+            const modal = document.getElementById('edit-ex-modal');
+            const modalContent = document.getElementById('edit-ex-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('edit-ex-modal');
+            const modalContent = document.getElementById('edit-ex-modal-content');
+            modal.classList.add('opacity-0'); modalContent.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            currentEditEx = null;
+        }
+
+        function saveEditModal() {
+            if(!currentEditEx) return;
+            const { dayId, exIndex, isAlt } = currentEditEx;
+            const ex = workoutData[dayId][exIndex];
+            const variant = isAlt ? ex.alt : ex.main;
+            const variantIndex = isAlt ? 'B' : 'A';
+            const configKey = `${ex.id}_${variantIndex}`;
+
+            ex.muscle = document.getElementById('edit-ex-muscle').value;
+            variant.name = document.getElementById('edit-ex-name').value;
+            variant.desc = document.getElementById('edit-ex-desc').value;
+            variant.sets = document.getElementById('edit-ex-sets').value;
+            variant.target = document.getElementById('edit-ex-target').value;
+
+            const wantOnChart = document.getElementById('edit-ex-chart').checked;
+            if (wantOnChart && !chartConfig.includes(configKey)) {
+                chartConfig.push(configKey);
+            } else if (!wantOnChart && chartConfig.includes(configKey)) {
+                chartConfig = chartConfig.filter(k => k !== configKey);
             }
-            if (Object.keys(exportObj).length === 0) { alert("Нет данных для сохранения."); return; }
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "workout_backup.json");
-            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
+            
+            localStorage.setItem('user_workout_data', JSON.stringify(workoutData));
+            localStorage.setItem('chart_config', JSON.stringify(chartConfig));
+            
+            closeEditModal();
+            renderCards(dayId, dayId + '-grid');
+            renderChart();
         }
 
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    let importedCount = 0;
-                    for (const key in importedData) {
-                        if (key.startsWith('freeride_')) { localStorage.setItem(key, JSON.stringify(importedData[key])); importedCount++; }
-                    }
-                    if (importedCount > 0) {
-                        alert(`Успешно восстановлено ${importedCount} записей!`);
-                        renderCards('push', 'push-grid'); renderCards('pull', 'pull-grid');
-                        if (myChartInstance && !document.getElementById('targets').classList.contains('hidden')) renderChart();
-                    }
-                } catch (error) { alert("Ошибка чтения файла."); }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
+        function deleteExercise() {
+            if(!currentEditEx) return;
+            if(!confirm('Точно удалить это упражнение из программы?')) return;
+            
+            workoutData[currentEditEx.dayId].splice(currentEditEx.exIndex, 1);
+            localStorage.setItem('user_workout_data', JSON.stringify(workoutData));
+            
+            closeEditModal();
+            renderCards(currentEditEx.dayId, currentEditEx.dayId + '-grid');
+            renderChart();
         }
 
-        /* ----- ИСТОРИЯ ----- */
+        function addExercise(dayId) {
+            const newId = dayId.substring(0,2) + '_' + Date.now().toString().slice(-6);
+            workoutData[dayId].push({
+                id: newId,
+                muscle: "Новая группа",
+                main: { name: "Новое упражнение", desc: "Описание техники...", sets: "3х10", target: "0" },
+                alt:  { name: "Альтернатива", desc: "Описание техники...", sets: "3х10", target: "0" }
+            });
+            localStorage.setItem('user_workout_data', JSON.stringify(workoutData));
+            renderCards(dayId, dayId + '-grid');
+            openEditModal(dayId, workoutData[dayId].length - 1, false);
+        }
+
+        window.swapVariants = function() {
+            if(!currentEditEx) return;
+            if(!confirm('Поменять местами Вариант А и Вариант Б? История их весов также поменяется местами.')) return;
+
+            const { dayId, exIndex } = currentEditEx;
+            const ex = workoutData[dayId][exIndex];
+
+            // 1. Меняем местами описания и цели в структуре
+            const temp = ex.main;
+            ex.main = ex.alt;
+            ex.alt = temp;
+
+            // 2. Меняем местами историю в памяти браузера
+            const keyA = Storage.getKey(ex.id, 'A');
+            const keyB = Storage.getKey(ex.id, 'B');
+            const dataA = localStorage.getItem(keyA);
+            const dataB = localStorage.getItem(keyB);
+
+            if (dataB) localStorage.setItem(keyA, dataB);
+            else localStorage.removeItem(keyA);
+
+            if (dataA) localStorage.setItem(keyB, dataA);
+            else localStorage.removeItem(keyB);
+
+            // 3. Обновляем настройки графика (если один из них был на графике)
+            const newChartConfig = chartConfig.map(key => {
+                if (key === keyA) return keyB;
+                if (key === keyB) return keyA;
+                return key;
+            });
+            chartConfig = newChartConfig;
+
+            // Сохраняем всё и перерисовываем
+            localStorage.setItem('user_workout_data', JSON.stringify(workoutData));
+            localStorage.setItem('chart_config', JSON.stringify(chartConfig));
+
+            closeEditModal();
+            renderCards(dayId, dayId + '-grid');
+            if (myChartInstance && !document.getElementById('targets').classList.contains('hidden')) renderChart();
+        };
+
+        /* ----- ИСТОРИЯ И УДАЛЕНИЕ ЗАПИСЕЙ ----- */
+        let currentHistoryContext = null; 
+
         function openHistory(exId, variantIndex, exName, unit) {
             if (navigator.vibrate) navigator.vibrate(20);
+            currentHistoryContext = { exId, variantIndex, exName, unit };
+            
             const data = Storage.load(exId, variantIndex);
             const listContainer = document.getElementById('history-list');
             document.getElementById('history-title').innerText = exName;
@@ -364,11 +588,21 @@
                 listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый результат!</div>';
             } else {
                 const reversedHistory = [...data.history].reverse();
-                reversedHistory.forEach(item => {
+                reversedHistory.forEach((item, displayIndex) => {
+                    const realIndex = data.history.length - 1 - displayIndex;
+                    const deleteBtnHtml = isEditMode ? `
+                        <button onclick="deleteHistoryItem(${realIndex})" class="ml-3 p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                        </button>
+                    ` : '';
+
                     listContainer.insertAdjacentHTML('beforeend', `
                         <div class="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-700/50 last:border-0">
                             <span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span>
-                            <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit}</span>
+                            <div class="flex items-center">
+                                <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit}</span>
+                                ${deleteBtnHtml}
+                            </div>
                         </div>
                     `);
                 });
@@ -380,15 +614,207 @@
             setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
         }
 
+        function deleteHistoryItem(realIndex) {
+            if(!confirm("Удалить эту запись?")) return;
+            
+            const { exId, variantIndex, exName, unit } = currentHistoryContext;
+            const key = Storage.getKey(exId, variantIndex);
+            let data = JSON.parse(localStorage.getItem(key));
+            
+            data.history.splice(realIndex, 1);
+            if(data.history.length > 0) data.weight = data.history[data.history.length - 1].weight;
+            else data.weight = "";
+            
+            localStorage.setItem(key, JSON.stringify(data));
+            openHistory(exId, variantIndex, exName, unit);
+            renderCards('push', 'push-grid');
+            renderCards('pull', 'pull-grid');
+            if (myChartInstance && !document.getElementById('targets').classList.contains('hidden')) renderChart();
+        }
+
         function closeHistory() {
             const modal = document.getElementById('history-modal');
             const modalContent = document.getElementById('history-modal-content');
             modal.classList.add('opacity-0'); modalContent.classList.add('scale-95');
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            currentHistoryContext = null;
         }
 
-        /* ----- ПРОДВИНУТЫЙ ТАЙМЕР + УВЕДОМЛЕНИЯ И WEB WORKER ----- */
-        
+        /* ----- ДИНАМИЧЕСКИЙ ГРАФИК ----- */
+        function renderChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            const isDark = document.documentElement.classList.contains('dark');
+            
+            const labels = [];
+            const userWeights = [];
+            const expertTargets = [];
+
+            chartConfig.forEach(configKey => {
+                const parts = configKey.split('_'); 
+                if(parts.length < 3) return; 
+                
+                const dayStr = parts[0]; 
+                const exId = parts[0] + '_' + parts[1]; 
+                const variantStr = parts[2]; 
+
+                const dayArray = dayStr === 'pu' ? workoutData.push : workoutData.pull;
+                const exObj = dayArray.find(e => e.id === exId);
+                
+                if(exObj) {
+                    const variant = variantStr === 'B' ? exObj.alt : exObj.main;
+                    let shortName = variant.name;
+                    if(shortName.length > 15) shortName = shortName.substring(0, 15) + '...';
+                    
+                    labels.push(shortName);
+                    expertTargets.push(parseFloat(variant.target) || 0);
+                    userWeights.push(parseFloat(Storage.load(exId, variantStr).weight) || 0);
+                }
+            });
+
+            if(labels.length === 0) {
+                labels.push('Нет данных'); userWeights.push(0); expertTargets.push(0);
+            }
+
+            const data = {
+                labels: labels,
+                datasets: [
+                    { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#475569' : '#cbd5e1', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 },
+                    { label: 'Твоя Цель', data: expertTargets, backgroundColor: isDark ? '#f59e0b' : '#f59e0b', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } 
+                ]
+            };
+
+            const config = {
+                type: 'bar', data: data,
+                options: {
+                    responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569', font: { family: "'Inter', sans-serif", size: 11 }, boxWidth: 10 } },
+                        tooltip: { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', titleFont: { family: "'Inter', sans-serif", size: 12 }, padding: 10, cornerRadius: 8 }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 } } },
+                        x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 }, maxRotation: 45, minRotation: 0 } }
+                    },
+                    animation: { duration: 500, easing: 'easeOutQuart' }
+                }
+            };
+            
+            if (myChartInstance) myChartInstance.destroy();
+            myChartInstance = new Chart(ctx, config);
+        }
+
+        /* ----- РЕЗЕРВНОЕ КОПИРОВАНИЕ И БЭКАПЫ ----- */
+        function gatherAllData() {
+            const exportObj = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('freeride_') || key === 'user_workout_data' || key === 'chart_config' || key === 'timer_last_setting') {
+                    exportObj[key] = JSON.parse(localStorage.getItem(key) || 'null');
+                }
+            }
+            return exportObj;
+        }
+
+        function applyImportedData(importedData) {
+            let importedCount = 0;
+            for (const key in importedData) {
+                if (importedData[key]) {
+                    localStorage.setItem(key, JSON.stringify(importedData[key])); 
+                    importedCount++;
+                }
+            }
+            if (importedCount > 0) {
+                alert(`Успешно восстановлено записей: ${importedCount}! Страница обновится.`);
+                location.reload(); 
+            } else {
+                alert("Ошибка: Не найдено корректных данных.");
+            }
+        }
+
+        function updateBackupTimer() {
+            localStorage.setItem('last_backup_date', Date.now());
+            document.getElementById('backup-warning').classList.add('hidden');
+        }
+
+        function exportData() {
+            if (navigator.vibrate) navigator.vibrate(20);
+            const exportObj = gatherAllData();
+            if (Object.keys(exportObj).length === 0) { alert("Нет данных для сохранения."); return; }
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            const date = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
+            downloadAnchorNode.setAttribute("download", `workout_backup_${date}.json`);
+            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
+            
+            updateBackupTimer();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    applyImportedData(importedData);
+                } catch (error) { alert("Ошибка чтения файла. Возможно, он поврежден."); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function copyDataToClipboard() {
+            if (navigator.vibrate) navigator.vibrate(20);
+            const exportObj = gatherAllData();
+            if (Object.keys(exportObj).length === 0) { alert("Нет данных для копирования."); return; }
+            
+            const dataString = JSON.stringify(exportObj);
+            
+            navigator.clipboard.writeText(dataString).then(() => {
+                alert("✅ Код бэкапа скопирован!\n\nВставьте его в любую заметку (например, Избранное в Telegram, Google Keep или Заметки). При следующем бэкапе просто удалите старый код и вставьте новый.");
+                updateBackupTimer();
+            }).catch(err => {
+                alert("Не удалось скопировать. Попробуйте скачать файл.");
+            });
+        }
+
+        async function importDataFromClipboard() {
+            if (navigator.vibrate) navigator.vibrate(20);
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text || !text.startsWith('{')) {
+                    alert("В буфере обмена нет кода бэкапа. Скопируйте ваш сохраненный код и нажмите кнопку снова.");
+                    return;
+                }
+                const importedData = JSON.parse(text);
+                applyImportedData(importedData);
+            } catch (err) {
+                const manualText = prompt("Не удалось прочитать буфер автоматически.\n\nВставьте (Paste) скопированный ранее код бэкапа в поле ниже:");
+                if (manualText) {
+                    try {
+                        const importedData = JSON.parse(manualText);
+                        applyImportedData(importedData);
+                    } catch (e) {
+                        alert("Ошибка: Неверный формат кода.");
+                    }
+                }
+            }
+        }
+
+        function checkBackupStatus() {
+            const lastBackupStr = localStorage.getItem('last_backup_date');
+            if (lastBackupStr) {
+                const lastBackup = parseInt(lastBackupStr, 10);
+                const daysPassed = (Date.now() - lastBackup) / (1000 * 60 * 60 * 24);
+                if (daysPassed > 7) document.getElementById('backup-warning').classList.remove('hidden');
+            } else {
+                localStorage.setItem('last_backup_date', Date.now() + (1000 * 60 * 60 * 24 * 5)); 
+            }
+        }
+
+        /* ----- ПРОДВИНУТЫЙ ТАЙМЕР + WEB WORKER ----- */
         let lastTimerSetting = parseInt(localStorage.getItem('timer_last_setting')) || 90;
         let timerRemaining = lastTimerSetting; 
         
@@ -423,33 +849,25 @@
         };
 
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
         function playBeep() {
             if (!audioCtx) return;
-            
             const playTone = (timeOffset, freq, duration) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime + timeOffset);
-                
                 gain.gain.setValueAtTime(1, audioCtx.currentTime + timeOffset);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + timeOffset + duration);
-                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(audioCtx.currentTime + timeOffset);
                 osc.stop(audioCtx.currentTime + timeOffset + duration);
             };
-
-            playTone(0, 880, 0.4);
-            playTone(0.5, 880, 0.4);
-            playTone(1.0, 1046.50, 0.6);
+            playTone(0, 880, 0.4); playTone(0.5, 880, 0.4); playTone(1.0, 1046.50, 0.6);
         }
 
         function formatTime(seconds) {
@@ -461,30 +879,24 @@
 
         function updateTimerUI() {
             document.getElementById('timer-display').innerText = formatTime(timerRemaining);
-            
             const mainBtn = document.getElementById('timer-toggle-btn');
             if (timerRemaining <= 0 && isTimerRunning) {
                 mainBtn.classList.add('timer-done');
-                
                 if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 500]);
                 playBeep();
-
                 pauseTimer(); 
             } else {
                 mainBtn.classList.remove('timer-done');
             }
-
             document.getElementById('icon-pause').classList.toggle('hidden', !isTimerRunning);
             document.getElementById('icon-play').classList.toggle('hidden', isTimerRunning);
         }
 
         function startTimer() {
             initAudio(); 
-            
             if (timerRemaining <= 0) timerRemaining = lastTimerSetting; 
             window.timerEndTime = Date.now() + timerRemaining * 1000;
             isTimerRunning = true;
-            
             worker.postMessage('start'); 
             updateTimerUI();
         }
@@ -492,20 +904,15 @@
         function pauseTimer() {
             isTimerRunning = false;
             worker.postMessage('stop');
-            
             const now = Date.now();
-            if (window.timerEndTime && window.timerEndTime > now) {
-                timerRemaining = Math.ceil((window.timerEndTime - now) / 1000);
-            } else {
-                timerRemaining = 0;
-            }
+            if (window.timerEndTime && window.timerEndTime > now) timerRemaining = Math.ceil((window.timerEndTime - now) / 1000);
+            else timerRemaining = 0;
             updateTimerUI();
         }
 
         function togglePlayPause() {
             if (navigator.vibrate) navigator.vibrate(10);
-            if (isTimerRunning) pauseTimer();
-            else startTimer();
+            if (isTimerRunning) pauseTimer(); else startTimer();
         }
 
         function adjustTimer(amount) {
@@ -513,7 +920,6 @@
             if (navigator.vibrate) navigator.vibrate(10);
             timerRemaining += amount;
             if (timerRemaining < 0) timerRemaining = 0;
-            
             if (isTimerRunning) {
                 window.timerEndTime += amount * 1000;
                 if (timerRemaining === 0) pauseTimer();
@@ -533,10 +939,8 @@
         function toggleTimer() {
             if (navigator.vibrate) navigator.vibrate(20);
             initAudio(); 
-            
             const controls = document.getElementById('timer-controls');
             isTimerVisible = !isTimerVisible;
-            
             if (isTimerVisible) {
                 controls.classList.remove('hidden');
                 if (timerRemaining === 0) timerRemaining = lastTimerSetting;
@@ -552,25 +956,16 @@
             document.getElementById('timer-display').classList.add('hidden');
             const editContainer = document.getElementById('timer-edit-container');
             editContainer.classList.remove('hidden');
-            
             const combinedInput = document.getElementById('timer-input-combined');
             combinedInput.value = formatTime(timerRemaining);
             combinedInput.focus();
-            
-            setTimeout(() => { 
-                combinedInput.setSelectionRange(0, combinedInput.value.length); 
-            }, 10);
+            setTimeout(() => { combinedInput.setSelectionRange(0, combinedInput.value.length); }, 10);
         }
 
         function handleCombinedInput(el) {
             let val = el.value.replace(/\D/g, '');
             if (val.length > 4) val = val.slice(-4);
-            
-            if (val.length === 0) {
-                el.value = "";
-                return;
-            }
-            
+            if (val.length === 0) { el.value = ""; return; }
             let padded = val.padStart(4, '0');
             el.value = padded.slice(0, 2) + ':' + padded.slice(2, 4);
         }
@@ -578,7 +973,6 @@
         function saveTimerEdit() {
             const display = document.getElementById('timer-display');
             const editContainer = document.getElementById('timer-edit-container');
-            
             if (editContainer.classList.contains('hidden')) return; 
 
             display.classList.remove('hidden');
@@ -589,25 +983,20 @@
             if (val.length === 0) val = "0000";
             
             let padded = val.padStart(4, '0');
-            
             let m = parseInt(padded.slice(0, 2), 10) || 0;
             let s = parseInt(padded.slice(2, 4), 10) || 0;
             
-            if (s >= 60) {
-                m += Math.floor(s / 60);
-                s = s % 60;
-            }
+            if (s >= 60) { m += Math.floor(s / 60); s = s % 60; }
             
             timerRemaining = m * 60 + s;
             if (timerRemaining <= 0) timerRemaining = 90; 
             
             lastTimerSetting = timerRemaining;
             localStorage.setItem('timer_last_setting', lastTimerSetting);
-
             updateTimerUI();
         }
 
-        /* ----- НАВИГАЦИЯ И UI ----- */
+        /* ----- НАВИГАЦИЯ И ИНИЦИАЛИЗАЦИЯ ----- */
         function updateVariantToggleUI(dayId, isAlt) {
             const btnA = document.getElementById(`${dayId}-btn-A`);
             const btnB = document.getElementById(`${dayId}-btn-B`);
@@ -643,7 +1032,6 @@
         navButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 if (navigator.vibrate) navigator.vibrate(20);
-
                 navButtons.forEach(b => { b.classList.remove('tab-active'); b.classList.add('tab-inactive'); });
                 btn.classList.remove('tab-inactive'); btn.classList.add('tab-active');
 
@@ -662,45 +1050,6 @@
             });
         });
 
-        /* ----- ГРАФИК ----- */
-        function renderChart() {
-            const ctx = document.getElementById('progressChart').getContext('2d');
-            const isDark = document.documentElement.classList.contains('dark');
-            
-            const currentLeg = parseFloat(Storage.load('pu_1', 'A').weight) || 100;
-            const currentBench = parseFloat(Storage.load('pu_4', 'A').weight) || 50;
-            const currentHip = parseFloat(Storage.load('pl_1', 'A').weight) || 60;
-            const currentRow = parseFloat(Storage.load('pl_3', 'A').weight) || 30;
-
-            const data = {
-                labels: ['Жим Ногами', 'Жим Гантелей', 'Ягодичный Мост', 'Тяга (упор)'],
-                datasets: [
-                    { label: 'Твой рабочий вес (кг)', data: [currentLeg, currentBench, currentHip, currentRow], backgroundColor: isDark ? '#475569' : '#cbd5e1', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 },
-                    { label: 'Цель Эксперта (кг)', data: [150, 50, 110, 45], backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }
-                ]
-            };
-
-            const config = {
-                type: 'bar', data: data,
-                options: {
-                    responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569', font: { family: "'Inter', sans-serif", size: 11 }, boxWidth: 10 } },
-                        tooltip: { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', titleFont: { family: "'Inter', sans-serif", size: 12 }, padding: 10, cornerRadius: 8 }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 }, maxRotation: 45, minRotation: 0 } }
-                    },
-                    animation: { duration: 500, easing: 'easeOutQuart' }
-                }
-            };
-            
-            if (myChartInstance) myChartInstance.destroy();
-            myChartInstance = new Chart(ctx, config);
-        }
-
-        /* ----- ИНИЦИАЛИЗАЦИЯ И ТЕМА ----- */
         const themeToggleBtn = document.getElementById('theme-toggle');
         themeToggleBtn.addEventListener('click', () => {
             if (navigator.vibrate) navigator.vibrate(20);
@@ -718,13 +1067,12 @@
             updateMetaThemeColor(isDark); 
             renderCards('push', 'push-grid');
             renderCards('pull', 'pull-grid');
-            
             updateTimerUI();
+            checkBackupStatus();
         });
 
-        document.getElementById('history-modal').addEventListener('click', function(e) {
-            if (e.target === this) closeHistory();
-        });
+        document.getElementById('history-modal').addEventListener('click', function(e) { if (e.target === this) closeHistory(); });
+        document.getElementById('edit-ex-modal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
 
     </script>
 </body>
