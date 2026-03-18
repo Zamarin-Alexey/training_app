@@ -254,7 +254,7 @@
             nav.insertAdjacentHTML('beforeend', `<button onclick="switchTab('targets')" class="pb-2 whitespace-nowrap ${currentTab === 'targets' ? 'tab-active' : 'tab-inactive'} transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation">Прогресс</button>`);
             if (isEditMode) nav.insertAdjacentHTML('beforeend', `<button onclick="addDay()" class="pb-2 whitespace-nowrap text-teal-600 dark:text-teal-400 font-bold transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation">+ День</button>`);
 
-            if (daySortable) daySortable.destroy();
+            if (daySortable) { daySortable.destroy(); daySortable = null; }
             if (isEditMode) {
                 daySortable = new Sortable(nav, {
                     handle: '.day-drag-handle', animation: 200, filter: "button:contains('+'), button:contains('Прогресс')",
@@ -331,7 +331,7 @@
                 const styles = getVarStyles(activeIndex, isEditMode);
 
                 const swapIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>`;
-                const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /></svg>`;
+                const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
                 const dragIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6h16.5" /></svg>`;
                 const historyIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
 
@@ -390,7 +390,7 @@
                 `);
             });
 
-            if (exSortable) exSortable.destroy();
+            if (exSortable) { exSortable.destroy(); exSortable = null; }
             if (isEditMode) {
                 exSortable = new Sortable(grid, {
                     handle: '.ex-drag-handle', animation: 200, ghostClass: 'sortable-ghost',
@@ -417,15 +417,6 @@
         function toggleEditMode() {
             if (navigator.vibrate) navigator.vibrate(20);
             isEditMode = !isEditMode;
-            
-            const toggleBtn = document.getElementById('edit-mode-toggle');
-            if(isEditMode) {
-                toggleBtn.classList.add('bg-amber-100', 'text-amber-600', 'dark:bg-amber-900/50', 'dark:text-amber-400');
-                toggleBtn.classList.remove('bg-slate-100', 'text-slate-600', 'dark:bg-slate-800', 'dark:text-slate-300');
-            } else {
-                toggleBtn.classList.remove('bg-amber-100', 'text-amber-600', 'dark:bg-amber-900/50', 'dark:text-amber-400');
-                toggleBtn.classList.add('bg-slate-100', 'text-slate-600', 'dark:bg-slate-800', 'dark:text-slate-300');
-            }
             renderApp();
         }
 
@@ -503,7 +494,7 @@
                 `);
             });
 
-            if (varSortable) varSortable.destroy();
+            if (varSortable) { varSortable.destroy(); varSortable = null; }
             varSortable = new Sortable(document.getElementById('draft-variants-container'), {
                 handle: '.var-drag-handle', animation: 150,
                 onEnd: function (evt) {
@@ -653,7 +644,8 @@
             if(labels.length === 0) { labels.push('Нет данных'); userWeights.push(0); expertTargets.push(0); }
             const data = { labels: labels, datasets: [ { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#475569' : '#cbd5e1', borderRadius: 4, barPercentage: 0.6 }, { label: 'Твоя Цель', data: expertTargets, backgroundColor: '#f59e0b', borderRadius: 4, barPercentage: 0.6 } ] };
             const config = { type: 'bar', data: data, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569' } } }, scales: { y: { beginAtZero: true, grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569' } }, x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', maxRotation: 45 } } }, animation: { duration: 500 } } };
-            if (myChartInstance) myChartInstance.destroy(); myChartInstance = new Chart(ctx, config);
+            if (myChartInstance) { myChartInstance.destroy(); myChartInstance = null; } 
+            myChartInstance = new Chart(ctx, config);
         }
 
         /* ----- БЭКАПЫ И ТАЙМЕР ----- */
