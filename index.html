@@ -30,7 +30,7 @@
             appleLink.rel = 'apple-touch-icon'; appleLink.href = iconUrl;
             document.head.appendChild(appleLink);
 
-            // Обновленный манифест по строгим правилам Chrome
+            // Манифест
             const manifest = {
                 "id": "workout-app-v2",
                 "name": "План тренировок",
@@ -95,7 +95,7 @@
     <header class="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-3 pb-2">
             <div class="flex justify-between items-center mb-3">
-                <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100">
+                <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
                     Тренировки
                 </h1>
                 <div class="flex items-center gap-2">
@@ -197,10 +197,8 @@
         /* ----- ЛОГИКА УСТАНОВКИ PWA (INSTALL) ----- */
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Предотвращаем автоматический показ мини-инфобара на мобильных устройствах
             e.preventDefault();
             deferredPrompt = e;
-            // Показываем кнопку установки в интерфейсе
             const installBtn = document.getElementById('install-btn');
             if (installBtn) installBtn.classList.remove('hidden');
         });
@@ -210,7 +208,6 @@
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
-                    console.log('Пользователь установил приложение');
                     document.getElementById('install-btn').classList.add('hidden');
                 }
                 deferredPrompt = null;
@@ -727,6 +724,7 @@
                 
                 if(variantObj) {
                     let shortName = variantObj.name || "Упражнение"; 
+                    // Используем умный перенос текста (макс 15 символов в строке)
                     labels.push(wrapChartText(shortName, 15)); 
                     expertTargets.push(parseFloat(variantObj.target) || 0); userWeights.push(parseFloat(Storage.load(exId, varId).weight) || 0);
                 }
@@ -734,13 +732,14 @@
 
             if(labels.length === 0) { labels.push(['Нет данных']); userWeights.push(0); expertTargets.push(0); }
             
+            // Задаем шрифт по умолчанию глобально для Chart.js
             Chart.defaults.font.family = "'Inter', sans-serif";
             
             const data = { 
                 labels: labels, 
                 datasets: [ 
-                    { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }, 
-                    { label: 'Твоя Цель', data: expertTargets, backgroundColor: isDark ? '#ccfbf1' : '#ccfbf1', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } 
+                    { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#475569' : '#334155', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }, 
+                    { label: 'Твоя Цель', data: expertTargets, backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } 
                 ] 
             };
             
@@ -753,7 +752,7 @@
                     interaction: { mode: 'index', intersect: false }, 
                     plugins: { 
                         legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 11 }, boxWidth: 10 } },
-                        tooltip: { backgroundColor: isDark ? 'rgba(13, 148, 136, 0.95)' : 'rgba(13, 148, 136, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', titleFont: { size: 12 }, padding: 10, cornerRadius: 8 }
+                        tooltip: { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(30, 41, 59, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', titleFont: { size: 12 }, padding: 10, cornerRadius: 8 }
                     }, 
                     scales: { 
                         y: { beginAtZero: true, border: {display: false}, grid: { color: isDark ? '#334155' : '#f1f5f9' }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 } } }, 
