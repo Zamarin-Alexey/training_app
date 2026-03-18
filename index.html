@@ -71,10 +71,7 @@
     <header class="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-3 pb-2">
             <div class="flex justify-between items-center mb-3">
-                <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-teal-600 dark:text-teal-400">
-                        <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" />
-                    </svg>
+                <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100">
                     Тренировки
                 </h1>
                 <div class="flex items-center gap-2">
@@ -496,7 +493,7 @@
                 container.insertAdjacentHTML('beforeend', `
                     <div class="variant-block bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 relative shadow-sm">
                         <div class="var-drag-handle absolute top-3 right-3 text-slate-400 cursor-grab active:cursor-grabbing touch-none p-1 bg-slate-100 dark:bg-slate-700 rounded">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6h16.5" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6h16.5" /></svg>
                         </div>
                         <div class="flex flex-col gap-2 pr-8">
                             <h4 class="w-full text-[11px] font-black text-slate-400 dark:text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-1 mb-1 uppercase tracking-wider">Вариант ${varLetter}</h4>
@@ -667,33 +664,8 @@
             });
 
             if(labels.length === 0) { labels.push('Нет данных'); userWeights.push(0); expertTargets.push(0); }
-            
-            const data = { 
-                labels: labels, 
-                datasets: [ 
-                    { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#475569' : '#cbd5e1', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }, 
-                    { label: 'Твоя Цель', data: expertTargets, backgroundColor: '#f59e0b', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } 
-                ] 
-            };
-            
-            const config = { 
-                type: 'bar', 
-                data: data, 
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    interaction: { mode: 'index', intersect: false }, 
-                    plugins: { 
-                        legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569', font: { family: "'Inter', sans-serif", size: 11 }, boxWidth: 10 } },
-                        tooltip: { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', titleFont: { family: "'Inter', sans-serif", size: 12 }, padding: 10, cornerRadius: 8 }
-                    }, 
-                    scales: { 
-                        y: { beginAtZero: true, border: {display: false}, grid: { color: isDark ? '#334155' : '#f1f5f9' }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 } } }, 
-                        x: { border: {display: false}, grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 }, maxRotation: 45, minRotation: 0 } } 
-                    }, 
-                    animation: { duration: 500, easing: 'easeOutQuart' } 
-                } 
-            };
+            const data = { labels: labels, datasets: [ { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }, { label: 'Твоя Цель', data: expertTargets, backgroundColor: '#f59e0b', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } ] };
+            const config = { type: 'bar', data: data, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569' } }, tooltip: { backgroundColor: isDark ? 'rgba(45, 212, 191, 0.95)' : 'rgba(13, 148, 136, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', cornerRadius: 8 } }, scales: { y: { beginAtZero: true, grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569' } }, x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', maxRotation: 45 } } }, animation: { duration: 500 } } };
             
             if (myChartInstance) { myChartInstance.destroy(); myChartInstance = null; } 
             myChartInstance = new Chart(ctx, config);
