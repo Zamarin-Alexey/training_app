@@ -240,6 +240,8 @@
         function renderApp() { renderNav(); renderView(); if(currentTab==='targets') renderChart(); }
 
         function renderNav() {
+            if (daySortable) { daySortable.destroy(); daySortable = null; }
+
             const nav = document.getElementById('main-nav');
             nav.innerHTML = '';
             appData.days.forEach(day => {
@@ -261,7 +263,6 @@
             nav.insertAdjacentHTML('beforeend', `<button onclick="switchTab('targets')" class="pb-2 whitespace-nowrap ${currentTab === 'targets' ? 'tab-active' : 'tab-inactive'} transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation">Прогресс</button>`);
             if (isEditMode) nav.insertAdjacentHTML('beforeend', `<button onclick="addDay()" class="pb-2 whitespace-nowrap text-teal-600 dark:text-teal-400 font-bold transition-colors duration-200 text-sm md:text-base focus:outline-none touch-manipulation">+ День</button>`);
 
-            if (daySortable) { daySortable.destroy(); daySortable = null; }
             if (isEditMode) {
                 daySortable = new Sortable(nav, {
                     handle: '.day-drag-handle', animation: 200, filter: "button:contains('+'), button:contains('Прогресс')",
@@ -295,9 +296,9 @@
 
         /* ----- РЕНДЕР КАРТОЧЕК ----- */
         function renderView() {
-            // Очистка памяти графика
+            if (exSortable) { exSortable.destroy(); exSortable = null; }
             if (myChartInstance) { myChartInstance.destroy(); myChartInstance = null; }
-            
+
             const container = document.getElementById('views-container');
             container.innerHTML = '';
             if (currentTab === 'targets') { renderTargetsHTML(container); return; }
@@ -399,7 +400,6 @@
                 `);
             });
 
-            if (exSortable) { exSortable.destroy(); exSortable = null; }
             if (isEditMode) {
                 exSortable = new Sortable(grid, {
                     handle: '.ex-drag-handle', animation: 200, ghostClass: 'sortable-ghost',
@@ -482,6 +482,8 @@
         }
 
         function renderDraftModal() {
+            if (varSortable) { varSortable.destroy(); varSortable = null; }
+
             document.getElementById('draft-muscle').value = draftEx.muscle;
             const container = document.getElementById('draft-variants-container'); container.innerHTML = '';
             
@@ -493,7 +495,7 @@
                 container.insertAdjacentHTML('beforeend', `
                     <div class="variant-block bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 relative shadow-sm">
                         <div class="var-drag-handle absolute top-3 right-3 text-slate-400 cursor-grab active:cursor-grabbing touch-none p-1 bg-slate-100 dark:bg-slate-700 rounded">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6h16.5" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6h16.5" /></svg>
                         </div>
                         <div class="flex flex-col gap-2 pr-8">
                             <h4 class="w-full text-[11px] font-black text-slate-400 dark:text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-1 mb-1 uppercase tracking-wider">Вариант ${varLetter}</h4>
@@ -512,7 +514,6 @@
                 `);
             });
 
-            if (varSortable) { varSortable.destroy(); varSortable = null; }
             varSortable = new Sortable(document.getElementById('draft-variants-container'), {
                 handle: '.var-drag-handle', animation: 150,
                 onEnd: function (evt) {
@@ -658,14 +659,20 @@
                 
                 if(variantObj) {
                     let shortName = variantObj.name || "Упражнение"; 
-                    if(shortName.length > 12) shortName = shortName.substring(0, 12) + '...';
-                    labels.push(shortName); expertTargets.push(parseFloat(variantObj.target) || 0); userWeights.push(parseFloat(Storage.load(exId, varId).weight) || 0);
+                    labels.push(shortName.split(' ')); 
+                    expertTargets.push(parseFloat(variantObj.target) || 0); userWeights.push(parseFloat(Storage.load(exId, varId).weight) || 0);
                 }
             });
 
             if(labels.length === 0) { labels.push('Нет данных'); userWeights.push(0); expertTargets.push(0); }
-            const data = { labels: labels, datasets: [ { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }, { label: 'Твоя Цель', data: expertTargets, backgroundColor: '#f59e0b', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } ] };
-            const config = { type: 'bar', data: data, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569' } }, tooltip: { backgroundColor: isDark ? 'rgba(45, 212, 191, 0.95)' : 'rgba(13, 148, 136, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', cornerRadius: 8 } }, scales: { y: { beginAtZero: true, grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569' } }, x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', maxRotation: 45 } } }, animation: { duration: 500 } } };
+            const data = { 
+                labels: labels, 
+                datasets: [ 
+                    { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }, 
+                    { label: 'Твоя Цель', data: expertTargets, backgroundColor: isDark ? '#99f6e4' : '#ccfbf1', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } 
+                ] 
+            };
+            const config = { type: 'bar', data: data, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569' } }, tooltip: { backgroundColor: isDark ? 'rgba(45, 212, 191, 0.95)' : 'rgba(13, 148, 136, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', cornerRadius: 8 } }, scales: { y: { beginAtZero: true, grid: { color: isDark ? '#334155' : '#f1f5f9', drawBorder: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569' } }, x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#475569', maxRotation: 45, autoSkip: false } } }, animation: { duration: 500 } } };
             
             if (myChartInstance) { myChartInstance.destroy(); myChartInstance = null; } 
             myChartInstance = new Chart(ctx, config);
