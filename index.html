@@ -29,6 +29,26 @@
             const appleLink = document.createElement('link');
             appleLink.rel = 'apple-touch-icon'; appleLink.href = iconUrl;
             document.head.appendChild(appleLink);
+
+            // Обновленный манифест по строгим правилам Chrome
+            const manifest = {
+                "id": "workout-app-v2",
+                "name": "План тренировок",
+                "short_name": "Тренировки",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#f8fafc",
+                "theme_color": "#0d9488", 
+                "icons": [
+                    { "src": iconUrl, "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+                    { "src": iconUrl, "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+                ]
+            };
+            const manifestStr = 'data:application/manifest+json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(manifest))));
+            const manifestLink = document.createElement('link');
+            manifestLink.rel = 'manifest';
+            manifestLink.href = manifestStr;
+            document.head.appendChild(manifestLink);
         })();
     </script>
     
@@ -79,6 +99,10 @@
                     Тренировки
                 </h1>
                 <div class="flex items-center gap-2">
+                    <button id="install-btn" onclick="installApp()" class="hidden p-2.5 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 hover:bg-teal-200 dark:hover:bg-teal-800 transition-colors focus:outline-none touch-manipulation shadow-sm flex items-center gap-1" title="Установить приложение">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                    </button>
+                    
                     <button id="edit-mode-toggle" onclick="toggleEditMode()" class="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none touch-manipulation shadow-sm flex items-center gap-1" title="Режим редактирования">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.683-12.683z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125L16.875 4.5" /></svg>
                     </button>
@@ -169,6 +193,29 @@
             const metaTheme = document.getElementById('theme-color-meta');
             if (metaTheme) metaTheme.setAttribute('content', isDark ? '#0f172a' : '#f8fafc');
         }
+
+        /* ----- ЛОГИКА УСТАНОВКИ PWA (INSTALL) ----- */
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Предотвращаем автоматический показ мини-инфобара на мобильных устройствах
+            e.preventDefault();
+            deferredPrompt = e;
+            // Показываем кнопку установки в интерфейсе
+            const installBtn = document.getElementById('install-btn');
+            if (installBtn) installBtn.classList.remove('hidden');
+        });
+
+        window.installApp = function() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('Пользователь установил приложение');
+                    document.getElementById('install-btn').classList.add('hidden');
+                }
+                deferredPrompt = null;
+            });
+        };
 
         /* ----- ЦВЕТА И НАЗВАНИЯ ВАРИАНТОВ ----- */
         const VAR_LABELS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'];
@@ -312,7 +359,6 @@
 
             let html = `<div class="view-section fade-in">`;
             
-            // Динамические кнопки массовой ротации
             let maxVariants = 0;
             dayObj.exercises.forEach(ex => { if(ex.variants.length > maxVariants) maxVariants = ex.variants.length; });
             if (maxVariants > 1) {
@@ -643,9 +689,9 @@
             checkBackupStatus();
         }
 
-        // Хелпер для умного переноса текста (по символам, сохраняя слова)
+        // Хелпер для умного переноса текста по строкам (сохраняя слова)
         function wrapChartText(text, maxChars) {
-            if (text.length <= maxChars) return [text];
+            if (!text || text.length <= maxChars) return [text];
             const words = text.split(' ');
             let lines = [];
             let currentLine = '';
@@ -672,7 +718,7 @@
                 const parts = configKey.split('_'); 
                 if(parts.length < 2) return; 
                 let exId, varId;
-                if(parts.length === 3) { exId = parts[0] + '_' + parts[Partii]; varId = parts[2]; } 
+                if(parts.length === 3) { exId = parts[0] + '_' + parts[1]; varId = parts[2]; } 
                 else if(parts.length === 4) { exId = parts[0] + '_' + parts[1]; varId = parts[2] + '_' + parts[3]; }
                 else return;
 
@@ -681,22 +727,20 @@
                 
                 if(variantObj) {
                     let shortName = variantObj.name || "Упражнение"; 
-                    // Используем умный перенос текста (макс 18 символов в строке)
-                    labels.push(wrapChartText(shortName, 18)); 
+                    labels.push(wrapChartText(shortName, 15)); 
                     expertTargets.push(parseFloat(variantObj.target) || 0); userWeights.push(parseFloat(Storage.load(exId, varId).weight) || 0);
                 }
             });
 
             if(labels.length === 0) { labels.push(['Нет данных']); userWeights.push(0); expertTargets.push(0); }
             
-            // Задаем шрифт по умолчанию глобально для Chart.js
             Chart.defaults.font.family = "'Inter', sans-serif";
             
             const data = { 
                 labels: labels, 
                 datasets: [ 
-                    { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#475569' : '#334155', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }, 
-                    { label: 'Твоя Цель', data: expertTargets, backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } 
+                    { label: 'Твой рабочий вес', data: userWeights, backgroundColor: isDark ? '#2dd4bf' : '#0d9488', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }, 
+                    { label: 'Твоя Цель', data: expertTargets, backgroundColor: isDark ? '#ccfbf1' : '#ccfbf1', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 } 
                 ] 
             };
             
@@ -709,7 +753,7 @@
                     interaction: { mode: 'index', intersect: false }, 
                     plugins: { 
                         legend: { position: 'top', labels: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 11 }, boxWidth: 10 } },
-                        tooltip: { backgroundColor: isDark ? 'rgba(45, 212, 191, 0.95)' : 'rgba(13, 148, 136, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', titleFont: { size: 12 }, padding: 10, cornerRadius: 8 }
+                        tooltip: { backgroundColor: isDark ? 'rgba(13, 148, 136, 0.95)' : 'rgba(13, 148, 136, 0.95)', titleColor: '#f8fafc', bodyColor: '#f8fafc', titleFont: { size: 12 }, padding: 10, cornerRadius: 8 }
                     }, 
                     scales: { 
                         y: { beginAtZero: true, border: {display: false}, grid: { color: isDark ? '#334155' : '#f1f5f9' }, ticks: { color: isDark ? '#cbd5e1' : '#475569', font: { size: 10 } } }, 
