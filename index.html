@@ -30,9 +30,8 @@
             appleLink.rel = 'apple-touch-icon'; appleLink.href = iconUrl;
             document.head.appendChild(appleLink);
 
-            // Манифест
             const manifest = {
-                "id": "workout-app-v2",
+                "id": "workout-app-v3",
                 "name": "План тренировок",
                 "short_name": "Тренировки",
                 "start_url": ".",
@@ -95,7 +94,7 @@
     <header class="sticky top-0 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-3 pb-2">
             <div class="flex justify-between items-center mb-3">
-                <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100">
                     Тренировки
                 </h1>
                 <div class="flex items-center gap-2">
@@ -112,7 +111,6 @@
                     </button>
                 </div>
             </div>
-            
             <nav class="flex overflow-x-auto no-scrollbar space-x-6 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0" id="main-nav"></nav>
         </div>
     </header>
@@ -172,7 +170,7 @@
                 </div>
                 <div class="pt-2">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400">Варианты (Потяните за ☰, чтобы поменять местами)</label>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400">Варианты (Потяните за ☰)</label>
                         <button onclick="addDraftVariant()" class="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline">+ Добавить</button>
                     </div>
                     <div id="draft-variants-container" class="flex flex-col gap-3"></div>
@@ -197,33 +195,28 @@
         /* ----- ЛОГИКА УСТАНОВКИ PWA (INSTALL) ----- */
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
+            e.preventDefault(); deferredPrompt = e;
             const installBtn = document.getElementById('install-btn');
             if (installBtn) installBtn.classList.remove('hidden');
         });
-
         window.installApp = function() {
             if (!deferredPrompt) return;
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    document.getElementById('install-btn').classList.add('hidden');
-                }
+                if (choiceResult.outcome === 'accepted') document.getElementById('install-btn').classList.add('hidden');
                 deferredPrompt = null;
             });
         };
 
         /* ----- ЦВЕТА И НАЗВАНИЯ ВАРИАНТОВ ----- */
         const VAR_LABELS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'];
-        
         function getVarStyles(index, isEditMode) {
             const palettes = [
-                { b: 'border-slate-200 dark:border-slate-700', t: 'text-teal-700 dark:text-teal-400', bg: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' }, // A
-                { b: 'border-amber-200 dark:border-amber-700/50', t: 'text-amber-700 dark:text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-400' }, // B
-                { b: 'border-rose-200 dark:border-rose-700/50', t: 'text-rose-700 dark:text-rose-500', bg: 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-400' }, // C
-                { b: 'border-indigo-200 dark:border-indigo-700/50', t: 'text-indigo-700 dark:text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-400' }, // D
-                { b: 'border-emerald-200 dark:border-emerald-700/50', t: 'text-emerald-700 dark:text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-400' } // E
+                { b: 'border-slate-200 dark:border-slate-700', t: 'text-teal-700 dark:text-teal-400', bg: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' }, 
+                { b: 'border-amber-200 dark:border-amber-700/50', t: 'text-amber-700 dark:text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-400' },
+                { b: 'border-rose-200 dark:border-rose-700/50', t: 'text-rose-700 dark:text-rose-500', bg: 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-400' },
+                { b: 'border-indigo-200 dark:border-indigo-700/50', t: 'text-indigo-700 dark:text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-400' },
+                { b: 'border-emerald-200 dark:border-emerald-700/50', t: 'text-emerald-700 dark:text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-400' }
             ];
             let style = Object.assign({}, palettes[index % palettes.length]);
             if(isEditMode) style.b = 'border-amber-400 dark:border-amber-500 shadow-md ring-2 ring-amber-400/20';
@@ -233,8 +226,8 @@
         /* ----- ДАННЫЕ И МИГРАЦИЯ ----- */
         const defaultAppV2 = {
             days: [
-                { id: "day_push", name: "День 1: Толкай", exercises: [ { id: "pu_1", muscle: "Квадрицепс", variants: [ { id: "A", name: "Жим ногами в тренажере", desc: "Амортизируем вес", sets: "4х8-12", target: "150" }, { id: "B", name: "Жим по одной ноге", desc: "Для баланса", sets: "3х10-12", target: "70" } ] }, { id: "pu_4", muscle: "Грудь", variants: [ { id: "A", name: "Жим гантелей лежа", desc: "Безопасно", sets: "4х8-10", target: "25" }, { id: "B", name: "Жим под углом 30°", desc: "Ширина", sets: "3х10-12", target: "22.5" } ] } ] },
-                { id: "day_pull", name: "День 2: Тяни", exercises: [ { id: "pl_1", muscle: "Ягодицы", variants: [ { id: "A", name: "Ягодичный мост", desc: "Толчок тазом", sets: "4х8-12", target: "110" }, { id: "B", name: "Тяга блока между ног", desc: "Прямая спина", sets: "3х12", target: "50" } ] }, { id: "pl_3", muscle: "Спина", variants: [ { id: "A", name: "Тяга в упоре", desc: "Изоляция", sets: "4х10-12", target: "22.5" }, { id: "B", name: "Горизонтальная тяга", desc: "Вертикально", sets: "3х12", target: "65" } ] } ] }
+                { id: "day_push", name: "День 1: Толкай", exercises: [ { id: "pu_1", muscle: "Квадрицепс", variants: [ { id: "A", name: "Жим ногами в тренажере", desc: "Амортизируем вес", sets: "4х8-12", rest: "90 сек", target: "150" }, { id: "B", name: "Жим по одной ноге", desc: "Для баланса", sets: "3х10-12", rest: "", target: "70" } ] }, { id: "pu_4", muscle: "Грудь", variants: [ { id: "A", name: "Жим гантелей лежа", desc: "Безопасно", sets: "4х8-10", rest: "2 мин", target: "25" }, { id: "B", name: "Жим под углом 30°", desc: "Ширина", sets: "3х10-12", rest: "", target: "22.5" } ] } ] },
+                { id: "day_pull", name: "День 2: Тяни", exercises: [ { id: "pl_1", muscle: "Ягодицы", variants: [ { id: "A", name: "Ягодичный мост", desc: "Толчок тазом", sets: "4х8-12", rest: "90 сек", target: "110" }, { id: "B", name: "Тяга блока между ног", desc: "Прямая спина", sets: "3х12", rest: "", target: "50" } ] }, { id: "pl_3", muscle: "Спина", variants: [ { id: "A", name: "Тяга в упоре", desc: "Изоляция", sets: "4х10-12", rest: "2 мин", target: "22.5" }, { id: "B", name: "Горизонтальная тяга", desc: "Вертикально", sets: "3х12", rest: "", target: "65" } ] } ] }
             ]
         };
 
@@ -247,7 +240,7 @@
                 appData = { days: [] };
                 const migrateDay = (dayId, dayName, oldArr) => ({
                     id: dayId, name: dayName, exercises: oldArr.map(ex => ({
-                        id: ex.id, muscle: ex.muscle, variants: [ { id: "A", ...ex.main }, { id: "B", ...ex.alt } ]
+                        id: ex.id, muscle: ex.muscle, variants: [ { id: "A", rest: "", ...ex.main }, { id: "B", rest: "", ...ex.alt } ]
                     }))
                 });
                 if(oldData.push) appData.days.push(migrateDay('day_push', 'День 1: Толкай', oldData.push));
@@ -289,7 +282,6 @@
 
         function renderNav() {
             if (daySortable) { daySortable.destroy(); daySortable = null; }
-
             const nav = document.getElementById('main-nav');
             nav.innerHTML = '';
             appData.days.forEach(day => {
@@ -318,8 +310,7 @@
                         if (evt.newIndex === undefined) return;
                         const movedDay = appData.days.splice(evt.oldIndex, 1)[0];
                         appData.days.splice(Math.min(evt.newIndex, appData.days.length), 0, movedDay);
-                        localStorage.setItem('app_data_v2', JSON.stringify(appData));
-                        renderNav();
+                        localStorage.setItem('app_data_v2', JSON.stringify(appData)); renderNav();
                     }
                 });
             }
@@ -347,15 +338,12 @@
             if (exSortable) { exSortable.destroy(); exSortable = null; }
             if (myChartInstance) { myChartInstance.destroy(); myChartInstance = null; }
 
-            const container = document.getElementById('views-container');
-            container.innerHTML = '';
+            const container = document.getElementById('views-container'); container.innerHTML = '';
             if (currentTab === 'targets') { renderTargetsHTML(container); return; }
 
-            const dayObj = appData.days.find(d => d.id === currentTab);
-            if (!dayObj) return;
+            const dayObj = appData.days.find(d => d.id === currentTab); if (!dayObj) return;
 
             let html = `<div class="view-section fade-in">`;
-            
             let maxVariants = 0;
             dayObj.exercises.forEach(ex => { if(ex.variants.length > maxVariants) maxVariants = ex.variants.length; });
             if (maxVariants > 1) {
@@ -400,6 +388,14 @@
                     ? `<div class="ex-drag-handle cursor-grab active:cursor-grabbing text-slate-400 p-2 -ml-2 touch-none flex-shrink-0">${dragIcon}</div>`
                     : '';
 
+                // Опциональное поле "Отдых"
+                const restHtml = (currentVar.rest && currentVar.rest.trim() !== '') ? `
+                    <div class="flex flex-col text-center border-l border-r border-slate-200 dark:border-slate-700 px-3 mx-3">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Отдых</span>
+                        <span class="text-sm font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">${currentVar.rest}</span>
+                    </div>
+                ` : '';
+
                 grid.insertAdjacentHTML('beforeend', `
                     <div data-id="${ex.id}" class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border ${styles.b} flex flex-col h-full transition-colors duration-300">
                         <div class="flex justify-between items-start mb-3">
@@ -424,7 +420,8 @@
                                     <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Сеты</span>
                                     <span class="text-sm font-bold text-slate-800 dark:text-slate-200">${currentVar.sets}</span>
                                 </div>
-                                <div class="flex flex-col text-right">
+                                ${restHtml}
+                                <div class="flex flex-col text-right ${!currentVar.rest ? 'ml-auto' : ''}">
                                     <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Цель</span>
                                     <span class="text-sm font-bold text-teal-600 dark:text-teal-400">${currentVar.target} ${unit}</span>
                                 </div>
@@ -510,7 +507,7 @@
             const day = appData.days.find(d => d.id === dayId);
             const newEx = {
                 id: 'ex_' + Date.now().toString().slice(-6), muscle: "Новая группа",
-                variants: [ { id: "v_1", name: "Новое упражнение", desc: "Описание техники...", sets: "3х10", target: "0" } ]
+                variants: [ { id: "v_1", name: "Новое упражнение", desc: "Описание техники...", sets: "3х10", rest: "", target: "0" } ]
             };
             day.exercises.push(newEx);
             localStorage.setItem('app_data_v2', JSON.stringify(appData));
@@ -548,10 +545,13 @@
                             <h4 class="w-full text-[11px] font-black text-slate-400 dark:text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-1 mb-1 uppercase tracking-wider">Вариант ${varLetter}</h4>
                             <input type="text" value="${v.name}" placeholder="Упражнение" oninput="updateDraftVar(${vIndex}, 'name', this.value)" class="w-full font-bold text-slate-900 dark:text-white bg-transparent border-b border-slate-200 dark:border-slate-700 focus:outline-none pb-1">
                             <textarea rows="2" placeholder="Описание..." oninput="updateDraftVar(${vIndex}, 'desc', this.value)" class="w-full text-xs text-slate-500 dark:text-slate-400 bg-transparent border-b border-slate-200 dark:border-slate-700 focus:outline-none pb-1 resize-none">${v.desc}</textarea>
+                            
                             <div class="flex gap-2">
                                 <input type="text" value="${v.sets}" placeholder="Сеты" oninput="updateDraftVar(${vIndex}, 'sets', this.value)" class="flex-1 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
+                                <input type="text" value="${v.rest || ''}" placeholder="Отдых (напр. 90 сек)" oninput="updateDraftVar(${vIndex}, 'rest', this.value)" class="flex-1 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
                                 <input type="number" value="${v.target}" placeholder="Цель" oninput="updateDraftVar(${vIndex}, 'target', this.value)" class="w-20 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
                             </div>
+                            
                             <div class="flex justify-between items-center mt-1">
                                 <label class="flex items-center gap-1.5 text-[10px] text-slate-500 cursor-pointer"><input type="checkbox" ${isCharted ? 'checked' : ''} onchange="toggleDraftChart('${configKey}', this.checked)" class="rounded text-teal-600"> В График</label>
                                 <button onclick="deleteDraftVariant(${vIndex})" class="text-[10px] text-rose-500 font-bold hover:underline">Удалить</button>
@@ -582,7 +582,7 @@
         function addDraftVariant() {
             draftEx.variants.push({
                 id: 'v_' + Date.now().toString().slice(-5),
-                name: "Название", desc: "", sets: "3x10", target: "0"
+                name: "Название", desc: "", sets: "3x10", rest: "", target: "0"
             });
             renderDraftModal();
         }
@@ -686,7 +686,6 @@
             checkBackupStatus();
         }
 
-        // Хелпер для умного переноса текста по строкам (сохраняя слова)
         function wrapChartText(text, maxChars) {
             if (!text || text.length <= maxChars) return [text];
             const words = text.split(' ');
@@ -724,7 +723,6 @@
                 
                 if(variantObj) {
                     let shortName = variantObj.name || "Упражнение"; 
-                    // Используем умный перенос текста (макс 15 символов в строке)
                     labels.push(wrapChartText(shortName, 15)); 
                     expertTargets.push(parseFloat(variantObj.target) || 0); userWeights.push(parseFloat(Storage.load(exId, varId).weight) || 0);
                 }
@@ -732,7 +730,6 @@
 
             if(labels.length === 0) { labels.push(['Нет данных']); userWeights.push(0); expertTargets.push(0); }
             
-            // Задаем шрифт по умолчанию глобально для Chart.js
             Chart.defaults.font.family = "'Inter', sans-serif";
             
             const data = { 
@@ -794,7 +791,7 @@
         function handleCombinedInput(el) { let v=el.value.replace(/\D/g,''); if(v.length>4)v=v.slice(-4); if(v.length===0){el.value="";return;} const p=v.padStart(4,'0'); el.value=`${p.slice(0,2)}:${p.slice(2,4)}`; }
         function saveTimerEdit() { const d=document.getElementById('timer-display'), c=document.getElementById('timer-edit-container'); if(c.classList.contains('hidden'))return; d.classList.remove('hidden'); c.classList.add('hidden'); const i=document.getElementById('timer-input-combined'); let v=i.value.replace(/\D/g,''); if(v.length===0)v="0000"; const p=v.padStart(4,'0'); let m=parseInt(p.slice(0,2))||0, s=parseInt(p.slice(2,4))||0; if(s>=60){m+=Math.floor(s/60);s=s%60;} timerRemaining=m*60+s; if(timerRemaining<=0)timerRemaining=90; lastTimerSetting=timerRemaining; localStorage.setItem('timer_last_setting',lastTimerSetting); updateTimerUI(); }
 
-        /* ----- ИНИЦИАЛИЗАЦИЯ ----- */
+        /* ----- ИНИЦИАЛИЗАЦИЯ И SERVICE WORKER ----- */
         const themeToggleBtn = document.getElementById('theme-toggle');
         themeToggleBtn.addEventListener('click', () => {
             if (navigator.vibrate) navigator.vibrate(20); const isDark = document.documentElement.classList.toggle('dark');
@@ -810,6 +807,15 @@
 
         document.getElementById('history-modal').addEventListener('click', function(e) { if (e.target === this) closeHistory(); });
         document.getElementById('edit-ex-modal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+
+        // Регистрация Service Worker для работы офлайн
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker успешно зарегистрирован.'))
+                    .catch(err => console.log('Ошибка регистрации Service Worker:', err));
+            });
+        }
     </script>
 </body>
 </html>
