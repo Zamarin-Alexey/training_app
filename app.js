@@ -2,8 +2,8 @@
 const VAR_LABELS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'];
 const defaultAppV2 = {
     days: [
-        { id: "day_push", name: "День 1: Толкай", exercises: [ { id: "pu_1", muscle: "Квадрицепс", variants: [ { id: "A", name: "Жим ногами в тренажере", desc: "Амортизируем вес", sets: "4х8-12", rest: "01:30", target: "150" }, { id: "B", name: "Жим по одной ноге", desc: "Для баланса", sets: "3х10-12", rest: "01:00", target: "70" } ] }, { id: "pu_4", muscle: "Грудь", variants: [ { id: "A", name: "Жим гантелей лежа", desc: "Безопасно", sets: "4х8-10", rest: "02:00", target: "25" }, { id: "B", name: "Жим под углом 30°", desc: "Ширина", sets: "3х10-12", rest: "01:30", target: "22.5" } ] } ] },
-        { id: "day_pull", name: "День 2: Тяни", exercises: [ { id: "pl_1", muscle: "Ягодицы", variants: [ { id: "A", name: "Ягодичный мост", desc: "Толчок тазом", sets: "4х8-12", rest: "01:30", target: "110" }, { id: "B", name: "Тяга блока между ног", desc: "Прямая спина", sets: "3х12", rest: "", target: "50" } ] }, { id: "pl_3", muscle: "Спина", variants: [ { id: "A", name: "Тяга в упоре", desc: "Изоляция", sets: "4х10-12", rest: "02:00", target: "22.5" }, { id: "B", name: "Горизонтальная тяга", desc: "Вертикально", sets: "3х12", rest: "", target: "65" } ] } ] }
+        { id: "day_push", name: "День 1: Толкай", exercises: [ { id: "pu_1", muscle: "Квадрицепс", variants: [ { id: "A", name: "Жим ногами в тренажере", desc: "Амортизируем вес", sets: "4х8-12", rest: "1:30", target: "150" }, { id: "B", name: "Жим по одной ноге", desc: "Для баланса", sets: "3х10-12", rest: "1:00", target: "70" } ] }, { id: "pu_4", muscle: "Грудь", variants: [ { id: "A", name: "Жим гантелей лежа", desc: "Безопасно", sets: "4х8-10", rest: "2:00", target: "25" }, { id: "B", name: "Жим под углом 30°", desc: "Ширина", sets: "3х10-12", rest: "1:30", target: "22.5" } ] } ] },
+        { id: "day_pull", name: "День 2: Тяни", exercises: [ { id: "pl_1", muscle: "Ягодицы", variants: [ { id: "A", name: "Ягодичный мост", desc: "Толчок тазом", sets: "4х8-12", rest: "1:30", target: "110" }, { id: "B", name: "Тяга блока между ног", desc: "Прямая спина", sets: "3х12", rest: "", target: "50" } ] }, { id: "pl_3", muscle: "Спина", variants: [ { id: "A", name: "Тяга в упоре", desc: "Изоляция", sets: "4х10-12", rest: "2:00", target: "22.5" }, { id: "B", name: "Горизонтальная тяга", desc: "Вертикально", sets: "3х12", rest: "", target: "65" } ] } ] }
     ]
 };
 
@@ -53,6 +53,7 @@ const Storage = {
 let currentTab = appData.days.length > 0 ? appData.days[0].id : 'targets';
 let isEditMode = false; let daySortable, exSortable, varSortable;
 let myChartInstance = null;
+let miniHistoryChartInstance = null; // Инстанс мини-графика
 
 
 /* ----- ТЕМА И ИНИЦИАЛИЗАЦИЯ ----- */
@@ -336,7 +337,7 @@ function addExercise(dayId) {
     const day = appData.days.find(d => d.id === dayId);
     const newEx = {
         id: 'ex_' + Date.now().toString().slice(-6), muscle: "Новая группа",
-        variants: [ { id: "v_1", name: "Новое упражнение", desc: "Описание техники...", sets: "3х10", rest: "01:30", target: "0" } ]
+        variants: [ { id: "v_1", name: "Новое упражнение", desc: "Описание техники...", sets: "3х10", rest: "1:30", target: "0" } ]
     };
     day.exercises.push(newEx);
     localStorage.setItem('app_data_v2', JSON.stringify(appData));
@@ -365,6 +366,7 @@ function renderDraftModal() {
         const isCharted = chartConfig.includes(configKey);
         const varLetter = VAR_LABELS[vIndex] || (vIndex + 1);
 
+        // Поле отдыха теперь обычный текстовый инпут без маски
         container.insertAdjacentHTML('beforeend', `
             <div class="variant-block bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 relative shadow-sm">
                 <div class="var-drag-handle absolute top-3 right-3 text-slate-400 cursor-grab active:cursor-grabbing touch-none p-1 bg-slate-100 dark:bg-slate-700 rounded">
@@ -386,11 +388,11 @@ function renderDraftModal() {
                     <div class="flex gap-2 mt-1">
                         <div class="flex-1">
                             <label class="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">Сеты</label>
-                            <input type="text" value="${v.sets}" placeholder="Сеты" oninput="updateDraftVar(${vIndex}, 'sets', this.value)" class="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
+                            <input type="text" value="${v.sets}" placeholder="3x10" oninput="updateDraftVar(${vIndex}, 'sets', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
                         </div>
                         <div class="flex-1">
                             <label class="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">Отдых</label>
-                            <input type="text" inputmode="numeric" placeholder="00:00" value="${v.rest || ''}" oninput="handleCombinedInput(this); updateDraftVar(${vIndex}, 'rest', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
+                            <input type="text" inputmode="text" placeholder="1:30" value="${v.rest || ''}" oninput="updateDraftVar(${vIndex}, 'rest', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
                         </div>
                         <div class="flex-1">
                             <label class="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">Цель (кг)</label>
@@ -428,7 +430,7 @@ function toggleDraftChart(key, isChecked) {
 function addDraftVariant() {
     draftEx.variants.push({
         id: 'v_' + Date.now().toString().slice(-5),
-        name: "Название", desc: "", sets: "3x10", rest: "01:30", target: "0"
+        name: "Название", desc: "", sets: "3x10", rest: "1:30", target: "0"
     });
     renderDraftModal();
 }
@@ -465,13 +467,54 @@ function openHistory(exId, variantId, exName, unit) {
     const data = Storage.load(exId, variantId); const listContainer = document.getElementById('history-list');
     document.getElementById('history-title').innerText = exName; listContainer.innerHTML = '';
     
-    if (!data.history || data.history.length === 0) { listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый результат!</div>'; } 
-    else {
+    // Рендер мини-графика в модалке
+    const chartContainer = document.getElementById('history-chart-container');
+    if (miniHistoryChartInstance) { miniHistoryChartInstance.destroy(); miniHistoryChartInstance = null; }
+
+    if (!data.history || data.history.length === 0) { 
+        listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый результат!</div>'; 
+        chartContainer.classList.add('hidden');
+    } else {
+        // Отрисовка списка
         [...data.history].reverse().forEach((item, displayIndex) => {
             const realIndex = data.history.length - 1 - displayIndex;
             const deleteBtnHtml = isEditMode ? `<button onclick="deleteHistoryItem(${realIndex})" class="ml-3 p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors focus:outline-none"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>` : '';
             listContainer.insertAdjacentHTML('beforeend', `<div class="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-700/50 last:border-0"><span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span><div class="flex items-center"><span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit}</span>${deleteBtnHtml}</div></div>`);
         });
+
+        // Отрисовка графика
+        if (data.history.length > 1) {
+            chartContainer.classList.remove('hidden');
+            const ctx = document.getElementById('miniHistoryChart').getContext('2d');
+            const isDark = document.documentElement.classList.contains('dark');
+            const labels = data.history.map(h => h.date.slice(0, 5)); // Короткая дата (ДД.ММ)
+            const weights = data.history.map(h => parseFloat(h.weight) || 0);
+            
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            miniHistoryChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: weights, borderColor: isDark ? '#2dd4bf' : '#0d9488',
+                        backgroundColor: isDark ? 'rgba(45, 212, 191, 0.1)' : 'rgba(13, 148, 136, 0.1)',
+                        borderWidth: 3, pointRadius: 4, pointBackgroundColor: isDark ? '#fff' : '#0f172a',
+                        fill: true, tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: true, displayColors: false } },
+                    scales: {
+                        x: { display: false }, // Скрываем ось Х для минимализма
+                        y: { border: {display: false}, grid: { display: false }, ticks: { color: isDark ? '#94a3b8' : '#64748b', maxTicksLimit: 3 } }
+                    },
+                    layout: { padding: { top: 5, bottom: 5 } }
+                }
+            });
+        } else {
+            chartContainer.classList.add('hidden');
+        }
     }
     const modal = document.getElementById('history-modal'); const modalContent = document.getElementById('history-modal-content');
     modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
@@ -492,8 +535,22 @@ function closeHistory() {
 }
 
 function renderTargetsHTML(container) {
+    let emptyStateHtml = '';
+    if (appData.days.length === 0) {
+        emptyStateHtml = `
+            <div class="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-xl p-6 text-center mb-8 fade-in">
+                <div class="w-12 h-12 bg-teal-100 dark:bg-teal-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-teal-600 dark:text-teal-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                </div>
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 mb-2">Программ пока нет</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Включите режим редактирования (иконка ✏️ сверху) и добавьте свой первый тренировочный день.</p>
+            </div>
+        `;
+    }
+
     container.innerHTML = `
         <div class="view-section fade-in">
+            ${emptyStateHtml}
             <div class="mb-5 pl-1">
                 <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">Живой график прогресса</h3>
                 <p class="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">График подтягивает веса из настроенных тобой упражнений.</p>
@@ -627,9 +684,37 @@ function renderChart() {
 
 /* ----- БЭКАПЫ И ТАЙМЕР ----- */
 function gatherAllData() { const exportObj = {}; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); if (key.startsWith('freeride_') || key.includes('app_data_v2') || key === 'chart_config' || key === 'timer_last_setting' || key === 'exercise_state_v2') { exportObj[key] = JSON.parse(localStorage.getItem(key) || 'null'); } } return exportObj; }
-function applyImportedData(importedData) { let count = 0; for (const key in importedData) { if (importedData[key]) { localStorage.setItem(key, JSON.stringify(importedData[key])); count++; } } if (count > 0) { alert(`Восстановлено записей: ${count}!`); location.reload(); } else alert("Ошибка: Не найдено данных."); }
+
+// Усиленная валидация импорта
+function applyImportedData(importedData) { 
+    if (!importedData || typeof importedData !== 'object' || (!importedData['app_data_v2'] && !importedData['chart_config'])) {
+        alert("Ошибка: Неверный формат файла или кода бэкапа. Данные не восстановлены.");
+        return;
+    }
+    let count = 0; 
+    for (const key in importedData) { 
+        if (importedData[key]) { localStorage.setItem(key, JSON.stringify(importedData[key])); count++; } 
+    } 
+    if (count > 0) { alert(`Восстановлено записей: ${count}!`); location.reload(); } 
+}
+
 function updateBackupTimer() { localStorage.setItem('last_backup_date', Date.now()); const w = document.getElementById('backup-warning'); if(w) w.classList.add('hidden'); }
-function exportData() { const obj = gatherAllData(); if(Object.keys(obj).length===0) return; const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj)); const a = document.createElement('a'); a.href = dataStr; a.download = `workout_backup.json`; document.body.appendChild(a); a.click(); a.remove(); updateBackupTimer(); }
+
+// Имя файла с датой
+function exportData() { 
+    const obj = gatherAllData(); 
+    if(Object.keys(obj).length===0) return; 
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj)); 
+    const a = document.createElement('a'); 
+    a.href = dataStr; 
+    
+    const dateObj = new Date();
+    const dateString = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+    a.download = `workout_backup_${dateString}.json`; 
+    
+    document.body.appendChild(a); a.click(); a.remove(); updateBackupTimer(); 
+}
+
 function importData(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = e => { try { applyImportedData(JSON.parse(e.target.result)); } catch(err) { alert("Ошибка чтения файла."); } }; r.readAsText(f); e.target.value = ''; }
 function copyDataToClipboard() { navigator.clipboard.writeText(JSON.stringify(gatherAllData())).then(() => { alert("Код скопирован!"); updateBackupTimer(); }).catch(() => alert("Не удалось скопировать.")); }
 async function importDataFromClipboard() { try { const t = await navigator.clipboard.readText(); if(!t.startsWith('{')) return alert("Нет кода в буфере."); applyImportedData(JSON.parse(t)); } catch(err) { const m = prompt("Вставьте код:"); if(m) applyImportedData(JSON.parse(m)); } }
@@ -651,7 +736,7 @@ function stopTimer() { if(navigator.vibrate)navigator.vibrate(20); pauseTimer();
 function toggleTimer() { if(navigator.vibrate)navigator.vibrate(20); initAudio(); const c=document.getElementById('timer-controls'); isTimerVisible=!isTimerVisible; if(isTimerVisible){c.classList.remove('hidden');if(timerRemaining===0)timerRemaining=lastTimerSetting;updateTimerUI();}else{c.classList.add('hidden');document.getElementById('timer-toggle-btn').classList.remove('timer-done');} }
 function enableTimerEdit() { pauseTimer(); document.getElementById('timer-display').classList.add('hidden'); document.getElementById('timer-edit-container').classList.remove('hidden'); const i=document.getElementById('timer-input-combined'); i.value=formatTime(timerRemaining); i.focus(); setTimeout(()=>i.setSelectionRange(0,i.value.length),10); }
 
-// Единый инпут для таймера и полей отдыха
+// Маска работает ТОЛЬКО для плавающего таймера
 function handleCombinedInput(el) { let v=el.value.replace(/\D/g,''); if(v.length>4)v=v.slice(-4); if(v.length===0){el.value="";return;} const p=v.padStart(4,'0'); el.value=`${p.slice(0,2)}:${p.slice(2,4)}`; }
 
 function saveTimerEdit() { 
