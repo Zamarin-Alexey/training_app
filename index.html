@@ -11,9 +11,7 @@
     <title>Тренировки</title>
 
     <link rel="icon" type="image/png" href="icon.png">
-    
     <link rel="apple-touch-icon" href="icon.png">
-    
     <link rel="manifest" href="manifest.json">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -96,19 +94,19 @@
     <div id="edit-ex-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="edit-ex-modal-content">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0">
-                <h3 class="font-bold text-slate-900 dark:text-white">Конструктор Упражнения</h3>
+                <h3 class="font-bold text-slate-900 dark:text-white">Редактор упражнения</h3>
                 <button onclick="closeEditModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full active:bg-slate-100 dark:active:bg-slate-700 transition-colors focus:outline-none">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
             <div class="p-4 overflow-y-auto no-scrollbar flex-grow flex flex-col gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Мышечная группа</label>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Группа мышц / Блок</label>
                     <input type="text" id="draft-muscle" oninput="updateDraftMuscle(this.value)" class="w-full p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 text-sm font-bold">
                 </div>
                 <div class="pt-2">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400">Варианты (Потяните за ☰, чтобы поменять)</label>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400">Варианты (Потяните за ☰ для сортировки)</label>
                         <button onclick="addDraftVariant()" class="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline">+ Добавить</button>
                     </div>
                     <div id="draft-variants-container" class="flex flex-col gap-3"></div>
