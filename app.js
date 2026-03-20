@@ -644,7 +644,7 @@ function renderTargetsHTML(container) {
                                 ${ICONS.share} Поделиться бэкапом
                             </button>
                             <button onclick="exportData()" class="py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-1.5 touch-manipulation border border-slate-200 dark:border-slate-600">
-                                ${ICONS.export} Скачать (.json)
+                                ${ICONS.export} Скачать файл
                             </button>
                             <button onclick="copyDataToClipboard()" class="py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-1.5 touch-manipulation border border-slate-200 dark:border-slate-600">
                                 ${ICONS.copy} Копировать код
@@ -656,8 +656,8 @@ function renderTargetsHTML(container) {
                         <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mb-2.5 tracking-wider">Восстановить данные (Импорт)</div>
                         <div class="grid grid-cols-2 gap-2.5">
                             <label class="py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-500 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation hover:bg-slate-50 dark:hover:bg-slate-700">
-                                ${ICONS.import} Из файла (.json)
-                                <input type="file" accept=".json" class="hidden" onchange="importData(event)">
+                                ${ICONS.import} Из файла
+                                <input type="file" accept=".json, .txt, application/json, text/plain" class="hidden" onchange="importData(event)">
                             </label>
                             <button onclick="importDataFromClipboard()" class="py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-500 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-1.5 touch-manipulation hover:bg-slate-50 dark:hover:bg-slate-700">
                                 ${ICONS.paste} Из буфера (Код)
