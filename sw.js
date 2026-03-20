@@ -1,10 +1,12 @@
-const CACHE_NAME = 'workout-app-cache-v2';
+const CACHE_NAME = 'workout-app-cache-v3';
 
 const urlsToCache = [
   './',
   './index.html',
   './style.css',
-  './app.js'
+  './app.js',
+  './icon.png',
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -30,7 +32,7 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.url.startsWith('chrome-extension') || event.request.url.includes('extension')) {
+  if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension') || event.request.url.includes('extension')) {
     return;
   }
 
@@ -38,13 +40,14 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(cachedResponse => {
       const fetchPromise = fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
+          const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, networkResponse.clone());
+            cache.put(event.request, responseToCache);
           });
         }
         return networkResponse;
       }).catch(err => {
-        console.log('Офлайн режим. Используем кэш для:', event.request.url);
+        console.log('Офлайн режим. Ошибка сети:', err);
       });
 
       return cachedResponse || fetchPromise;

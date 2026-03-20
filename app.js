@@ -764,11 +764,11 @@ async function shareData() {
         return;
     }
     const jsonStr = JSON.stringify(obj);
-    
-    // Проверка поддержки Web Share API (наличие HTTPS)
+
+    // Проверка поддержки Web Share API
     if (!navigator.share) {
         copyDataToClipboard();
-        alert("Шеринг не сработал (нужен HTTPS или установленное PWA). Твой код скопирован в буфер обмена!");
+        alert("Шеринг файлов не поддерживается на этом устройстве. Твой код скопирован в буфер обмена!");
         return;
     }
 
@@ -778,14 +778,14 @@ async function shareData() {
         // Проверяем, разрешает ли система шерить именно файлы
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({ 
-                title: 'Бэкап Тренировок', 
-                text: 'Моя программа и результаты.', 
+                title: 'Программа тренировок', 
+                text: 'Мой бэкап из приложения Тренировки.', 
                 files: [file] 
             });
         } else {
             // Если файлы не поддерживаются, шлем просто текстом
             await navigator.share({ 
-                title: 'Бэкап Тренировок', 
+                title: 'Программа тренировок', 
                 text: jsonStr 
             });
         }
@@ -793,8 +793,9 @@ async function shareData() {
     } catch (err) {
         // Ошибка AbortError возникает, когда юзер сам закрыл шторку шеринга, ее игнорируем
         if (err.name !== 'AbortError') {
-            alert(`Ошибка при отправке: ${err.message}`);
-            copyDataToClipboard(); // Запасной вариант: копируем в буфер
+            console.error(err);
+            copyDataToClipboard(); 
+            alert(`Упс, система заблокировала отправку файла (${err.message}). \nНо мы скопировали код в буфер обмена как запасной вариант!`);
         }
     }
 }
