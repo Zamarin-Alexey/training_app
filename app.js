@@ -756,25 +756,46 @@ function applyImportedData(importedData) {
 }
 function updateBackupTimer() { localStorage.setItem('last_backup_date', Date.now()); const w = document.getElementById('backup-warning'); if(w) w.classList.add('hidden'); }
 
-// Интеграция Web Share API
+// Интеграция Web Share API с улучшенной обработкой ошибок
 async function shareData() {
     const obj = gatherAllData();
-    if(Object.keys(obj).length === 0) return;
+    if (Object.keys(obj).length === 0) {
+        alert("Пока нет данных для отправки.");
+        return;
+    }
     const jsonStr = JSON.stringify(obj);
     
+    // Проверка поддержки Web Share API (наличие HTTPS)
+    if (!navigator.share) {
+        copyDataToClipboard();
+        alert("Шеринг не сработал (нужен HTTPS или установленное PWA). Твой код скопирован в буфер обмена!");
+        return;
+    }
+
     try {
         const file = new File([jsonStr], "workout_backup.json", { type: "application/json" });
+        
+        // Проверяем, разрешает ли система шерить именно файлы
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ title: 'Тренировки бэкап', text: 'Моя программа и результаты из приложения Тренировки.', files: [file] });
-        } else if (navigator.share) {
-            await navigator.share({ title: 'Тренировки бэкап', text: jsonStr });
+            await navigator.share({ 
+                title: 'Бэкап Тренировок', 
+                text: 'Моя программа и результаты.', 
+                files: [file] 
+            });
         } else {
-            copyDataToClipboard();
-            alert("Шеринг не поддерживается. Код скопирован в буфер обмена.");
+            // Если файлы не поддерживаются, шлем просто текстом
+            await navigator.share({ 
+                title: 'Бэкап Тренировок', 
+                text: jsonStr 
+            });
         }
         updateBackupTimer();
     } catch (err) {
-        console.log('Шеринг отменен или ошибка', err);
+        // Ошибка AbortError возникает, когда юзер сам закрыл шторку шеринга, ее игнорируем
+        if (err.name !== 'AbortError') {
+            alert(`Ошибка при отправке: ${err.message}`);
+            copyDataToClipboard(); // Запасной вариант: копируем в буфер
+        }
     }
 }
 
