@@ -4,8 +4,8 @@
 const VAR_LABELS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'];
 const defaultAppV2 = {
     days: [
-        { id: "day_push", name: "День 1: Толкай", exercises: [ { id: "pu_1", muscle: "Квадрицепс", variants: [ { id: "A", name: "Жим ногами в тренажере", desc: "Амортизируем вес", sets: "4х8-12", rest: "1:30", target: "150" }, { id: "B", name: "Жим по одной ноге", desc: "Для баланса", sets: "3х10-12", rest: "1:00", target: "70" } ] }, { id: "pu_4", muscle: "Грудь", variants: [ { id: "A", name: "Жим гантелей лежа", desc: "Безопасно", sets: "4х8-10", rest: "2:00", target: "25" }, { id: "B", name: "Жим под углом 30°", desc: "Ширина", sets: "3х10-12", rest: "1:30", target: "22.5" } ] } ] },
-        { id: "day_pull", name: "День 2: Тяни", exercises: [ { id: "pl_1", muscle: "Ягодицы", variants: [ { id: "A", name: "Ягодичный мост", desc: "Толчок тазом", sets: "4х8-12", rest: "1:30", target: "110" }, { id: "B", name: "Тяга блока между ног", desc: "Прямая спина", sets: "3х12", rest: "", target: "50" } ] }, { id: "pl_3", muscle: "Спина", variants: [ { id: "A", name: "Тяга в упоре", desc: "Изоляция", sets: "4х10-12", rest: "2:00", target: "22.5" }, { id: "B", name: "Горизонтальная тяга", desc: "Вертикально", sets: "3х12", rest: "", target: "65" } ] } ] }
+        { id: "day_push", name: "День 1: Толкай", exercises: [ { id: "pu_1", muscle: "Квадрицепс", variants: [ { id: "A", name: "Жим ногами в тренажере", desc: "Амортизируем вес", sets: "4х8-12", rest: "1:30", target: "150", unit: "кг" }, { id: "B", name: "Жим по одной ноге", desc: "Для баланса", sets: "3х10-12", rest: "1:00", target: "70", unit: "кг" } ] }, { id: "pu_4", muscle: "Грудь", variants: [ { id: "A", name: "Жим гантелей лежа", desc: "Безопасно", sets: "4х8-10", rest: "2:00", target: "25", unit: "кг" }, { id: "B", name: "Жим под углом 30°", desc: "Ширина", sets: "3х10-12", rest: "1:30", target: "22.5", unit: "кг" } ] } ] },
+        { id: "day_pull", name: "День 2: Тяни", exercises: [ { id: "pl_1", muscle: "Ягодицы", variants: [ { id: "A", name: "Ягодичный мост", desc: "Толчок тазом", sets: "4х8-12", rest: "1:30", target: "110", unit: "кг" }, { id: "B", name: "Тяга блока между ног", desc: "Прямая спина", sets: "3х12", rest: "", target: "50", unit: "кг" } ] }, { id: "pl_3", muscle: "Спина", variants: [ { id: "A", name: "Тяга в упоре", desc: "Изоляция", sets: "4х10-12", rest: "2:00", target: "22.5", unit: "кг" }, { id: "B", name: "Горизонтальная тяга", desc: "Вертикально", sets: "3х12", rest: "", target: "65", unit: "кг" } ] } ] }
     ]
 };
 
@@ -18,7 +18,7 @@ if (!appData) {
         appData = { days: [] };
         const migrateDay = (dayId, dayName, oldArr) => ({
             id: dayId, name: dayName, exercises: oldArr.map(ex => ({
-                id: ex.id, muscle: ex.muscle, variants: [ { id: "A", rest: "", ...ex.main }, { id: "B", rest: "", ...ex.alt } ]
+                id: ex.id, muscle: ex.muscle, variants: [ { id: "A", rest: "", unit: "кг", ...ex.main }, { id: "B", rest: "", unit: "кг", ...ex.alt } ]
             }))
         });
         if(oldData.push) appData.days.push(migrateDay('day_push', 'День 1: Толкай', oldData.push));
@@ -209,7 +209,15 @@ function renderView() {
         const activeIndex = exerciseState[ex.id];
         const currentVar = ex.variants[activeIndex];
         const savedData = Storage.load(ex.id, currentVar.id);
-        const unit = currentVar.unit || "кг"; const ph = currentVar.ph || "Рабочий вес";
+        
+        const unit = currentVar.unit || "кг"; 
+        let ph = currentVar.ph;
+        if (!ph) {
+            if (unit === 'сек' || unit === 'мин') ph = "Время";
+            else if (unit === 'раз') ph = "Кол-во";
+            else if (unit === '-') ph = "Свой вес";
+            else ph = "Рабочий вес";
+        }
         
         const styles = getVarStyles(activeIndex, isEditMode);
 
@@ -260,7 +268,7 @@ function renderView() {
                                 ${restHtml}
                                 <div class="flex flex-col text-right ${!currentVar.rest ? 'ml-auto' : ''}">
                                     <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wide mb-0.5">Цель</span>
-                                    <span class="text-sm font-bold text-teal-600 dark:text-teal-400">${currentVar.target} ${unit}</span>
+                                    <span class="text-sm font-bold text-teal-600 dark:text-teal-400">${currentVar.target} ${unit !== '-' ? unit : ''}</span>
                                 </div>
                             </div>
                             
@@ -270,7 +278,7 @@ function renderView() {
                                            onchange="Storage.saveWeight('${ex.id}', '${currentVar.id}', this.value)"
                                            ${isEditMode ? 'disabled' : ''}
                                            class="w-full py-2.5 pl-3 pr-10 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm disabled:opacity-50">
-                                    <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">${unit}</span>
+                                    <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">${unit !== '-' ? unit : ''}</span>
                                 </div>
                                 <button onclick="openHistory('${ex.id}', '${currentVar.id}', '${currentVar.name.replace(/'/g, "\\'")}', '${unit}', '${currentVar.target}')" class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors shadow-sm focus:outline-none">
                                     ${historyIcon}
@@ -344,7 +352,7 @@ function addExercise(dayId) {
     const day = appData.days.find(d => d.id === dayId);
     const newEx = {
         id: 'ex_' + Date.now().toString().slice(-6), muscle: "Новая группа",
-        variants: [ { id: "v_1", name: "Новое упражнение", desc: "Описание техники...", sets: "3х10", rest: "1:30", target: "0" } ]
+        variants: [ { id: "v_1", name: "Новое упражнение", desc: "Описание техники...", sets: "3х10", rest: "1:30", target: "0", unit: "кг" } ]
     };
     day.exercises.push(newEx);
     localStorage.setItem('app_data_v2', JSON.stringify(appData));
@@ -392,17 +400,27 @@ function renderDraftModal() {
                     </div>
                     
                     <div class="flex gap-2 mt-1">
-                        <div class="flex-1">
+                        <div class="flex-[1.2]">
                             <label class="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">Сеты</label>
-                            <input type="text" value="${v.sets}" placeholder="3x10" oninput="updateDraftVar(${vIndex}, 'sets', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
+                            <input type="text" value="${v.sets}" placeholder="3x10" oninput="updateDraftVar(${vIndex}, 'sets', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none text-slate-900 dark:text-white">
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-[1.2]">
                             <label class="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">Отдых</label>
-                            <input type="text" inputmode="text" placeholder="1:30" value="${v.rest || ''}" oninput="updateDraftVar(${vIndex}, 'rest', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
+                            <input type="text" inputmode="text" placeholder="1:30" value="${v.rest || ''}" oninput="updateDraftVar(${vIndex}, 'rest', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none text-slate-900 dark:text-white">
+                        </div>
+                        <div class="flex-[1.2]">
+                            <label class="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">Цель</label>
+                            <input type="number" value="${v.target}" placeholder="0" oninput="updateDraftVar(${vIndex}, 'target', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none text-slate-900 dark:text-white">
                         </div>
                         <div class="flex-1">
-                            <label class="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">Цель (кг)</label>
-                            <input type="number" value="${v.target}" placeholder="Цель" oninput="updateDraftVar(${vIndex}, 'target', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none">
+                            <label class="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">Ед.изм.</label>
+                            <select onchange="updateDraftVar(${vIndex}, 'unit', this.value)" class="w-full text-center text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded p-1.5 focus:outline-none text-slate-900 dark:text-white appearance-none cursor-pointer">
+                                <option value="кг" ${(!v.unit || v.unit === 'кг') ? 'selected' : ''}>кг</option>
+                                <option value="сек" ${v.unit === 'сек' ? 'selected' : ''}>сек</option>
+                                <option value="мин" ${v.unit === 'мин' ? 'selected' : ''}>мин</option>
+                                <option value="раз" ${v.unit === 'раз' ? 'selected' : ''}>раз</option>
+                                <option value="-" ${v.unit === '-' ? 'selected' : ''}>—</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -436,7 +454,7 @@ function toggleDraftChart(key, isChecked) {
 function addDraftVariant() {
     draftEx.variants.push({
         id: 'v_' + Date.now().toString().slice(-5),
-        name: "Название", desc: "", sets: "3x10", rest: "1:30", target: "0"
+        name: "Название", desc: "", sets: "3x10", rest: "1:30", target: "0", unit: "кг"
     });
     renderDraftModal();
 }
@@ -480,19 +498,21 @@ function openHistory(exId, variantId, exName, unit, targetValue) {
         listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm fade-in">История пуста. Запиши свой первый результат!</div>'; 
         chartContainer.classList.add('hidden');
     } else {
-        // Отрисовка свайп-списка (ОБНОВЛЕН ДИЗАЙН КНОПКИ УДАЛЕНИЯ)
         [...data.history].reverse().forEach((item, displayIndex) => {
             const realIndex = data.history.length - 1 - displayIndex;
+            // НОВАЯ СТРУКТУРА СВАЙПА: Кнопка физически привязана к правому краю карточки
             listContainer.insertAdjacentHTML('beforeend', `
-                <div class="swipe-container border-b border-slate-100 dark:border-slate-700/50 last:border-0 rounded-xl" data-index="${realIndex}">
-                    <div class="swipe-action pr-3" onclick="deleteHistoryItem(${realIndex})">
-                        <div class="w-12 h-12 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <div class="swipe-container border-b border-slate-100 dark:border-slate-700/50 last:border-0 overflow-hidden" data-index="${realIndex}">
+                    <div class="swipe-content flex w-full relative touch-pan-y transition-transform duration-200 ease-out" oncontextmenu="return false;">
+                        <div class="w-full flex-shrink-0 bg-white dark:bg-slate-800 flex justify-between items-center py-3.5 px-2">
+                            <span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit !== '-' ? unit : ''}</span>
                         </div>
-                    </div>
-                    <div class="swipe-content bg-white dark:bg-slate-800 flex justify-between items-center py-3.5 px-2" oncontextmenu="return false;">
-                        <span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit}</span>
+                        <div class="absolute top-0 -right-[80px] w-[80px] h-full bg-white dark:bg-slate-800 flex items-center justify-center">
+                            <button onclick="deleteHistoryItem(${realIndex})" class="w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform touch-manipulation">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `);
@@ -503,11 +523,9 @@ function openHistory(exId, variantId, exName, unit, targetValue) {
             const ctx = document.getElementById('miniHistoryChart').getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
             
-            // Данные для графика
             const labels = data.history.map(h => h.date.slice(0, 5));
             const weights = data.history.map(h => parseFloat(h.weight) || 0);
             
-            // Генерируем массив цели (линия)
             const targetVal = parseFloat(targetValue) || 0;
             const targetData = new Array(data.history.length).fill(targetVal);
             
@@ -524,14 +542,13 @@ function openHistory(exId, variantId, exName, unit, targetValue) {
                             borderWidth: 3, pointRadius: 4, pointBackgroundColor: isDark ? '#fff' : '#0f172a',
                             fill: true, tension: 0.3, z: 2
                         },
-                        // НОВАЯ ЛИНИЯ ЦЕЛИ (Пунктирная)
                         {
                             label: 'Цель',
                             data: targetData, 
-                            borderColor: isDark ? '#475569' : '#cbd5e1', // Slate color
+                            borderColor: isDark ? '#475569' : '#cbd5e1', 
                             borderWidth: 2,
-                            borderDash: [6, 4], // Пунктир
-                            pointRadius: 0, // Без точек
+                            borderDash: [6, 4], 
+                            pointRadius: 0, 
                             fill: false,
                             tension: 0,
                             z: 1
@@ -560,18 +577,24 @@ function openHistory(exId, variantId, exName, unit, targetValue) {
     modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
 }
 
+// ОБНОВЛЕННАЯ ЛОГИКА СВАЙПА
 function initSwipeToDelete() {
     let touchStartX = 0;
     let currentSwipeEl = null;
 
     document.addEventListener('touchstart', e => {
         const swipeContent = e.target.closest('.swipe-content');
+        
+        // Защита: если нажали саму кнопку удалить, не перехватываем тач, чтобы сработал клик
+        if (e.target.closest('button')) return;
+
         if (!swipeContent) {
             document.querySelectorAll('.swipe-content').forEach(el => el.style.transform = 'translateX(0)');
             return;
         }
         touchStartX = e.touches[0].clientX;
         currentSwipeEl = swipeContent;
+        
         document.querySelectorAll('.swipe-content').forEach(el => {
             if(el !== currentSwipeEl) el.style.transform = 'translateX(0)';
         });
@@ -581,7 +604,9 @@ function initSwipeToDelete() {
         if (!currentSwipeEl) return;
         const touchX = e.touches[0].clientX;
         const deltaX = touchX - touchStartX;
-        if (deltaX < 0 && deltaX > -120) { 
+        
+        // Лимит сдвига - 100px (кнопка имеет ширину 80px)
+        if (deltaX < 0 && deltaX > -100) { 
             currentSwipeEl.style.transform = `translateX(${deltaX}px)`;
             currentSwipeEl.style.transition = 'none'; 
         }
@@ -592,9 +617,9 @@ function initSwipeToDelete() {
         const touchEndX = e.changedTouches[0].clientX;
         const deltaX = touchEndX - touchStartX;
         
-        currentSwipeEl.style.transition = 'transform 0.2s ease-out';
-        if (deltaX < -60) { 
-            currentSwipeEl.style.transform = 'translateX(-90px)'; // Фиксируем выезд кнопки
+        currentSwipeEl.style.transition = ''; // Возвращаем плавность
+        if (deltaX < -40) { 
+            currentSwipeEl.style.transform = 'translateX(-80px)'; // Идеальный фиксатор на ширине кнопки
         } else { 
             currentSwipeEl.style.transform = 'translateX(0)';
         }
