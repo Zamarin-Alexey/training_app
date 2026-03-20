@@ -765,37 +765,45 @@ async function shareData() {
     }
     const jsonStr = JSON.stringify(obj);
 
-    // Проверка поддержки Web Share API
     if (!navigator.share) {
         copyDataToClipboard();
-        alert("Шеринг файлов не поддерживается на этом устройстве. Твой код скопирован в буфер обмена!");
+        alert("Шеринг не поддерживается. Твой код скопирован в буфер обмена!");
         return;
     }
 
+    // ХИТРОСТЬ: Маскируем JSON под обычный текстовый файл, чтобы пройти фильтры Android
+    const file = new File([jsonStr], "workout_backup.txt", { type: "text/plain" });
+    
     try {
-        const file = new File([jsonStr], "workout_backup.json", { type: "application/json" });
-        
-        // Проверяем, разрешает ли система шерить именно файлы
+        // ПЛАН А: Пробуем отправить как файл
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({ 
                 title: 'Программа тренировок', 
                 text: 'Мой бэкап из приложения Тренировки.', 
                 files: [file] 
             });
-        } else {
-            // Если файлы не поддерживаются, шлем просто текстом
-            await navigator.share({ 
-                title: 'Программа тренировок', 
-                text: jsonStr 
-            });
+            updateBackupTimer();
+            return; // Успех! Выходим из функции.
         }
+    } catch (err) {
+        if (err.name === 'AbortError') return; // Юзер сам отменил отправку (смахнул шторку)
+        console.warn("Шеринг файла заблокирован ОС (Permission denied). Переходим к Плану Б...", err);
+        // Ошибку игнорируем, код пойдет дальше к Плану Б
+    }
+
+    try {
+        // ПЛАН Б: Если Android заблокировал файл, отправляем просто как текст!
+        // В Telegram это придет как одно большое сообщение, которое друг сможет скопировать и нажать "Вставить"
+        await navigator.share({ 
+            title: 'Программа тренировок', 
+            text: jsonStr 
+        });
         updateBackupTimer();
     } catch (err) {
-        // Ошибка AbortError возникает, когда юзер сам закрыл шторку шеринга, ее игнорируем
         if (err.name !== 'AbortError') {
             console.error(err);
             copyDataToClipboard(); 
-            alert(`Упс, система заблокировала отправку файла (${err.message}). \nНо мы скопировали код в буфер обмена как запасной вариант!`);
+            alert("Система полностью заблокировала шеринг. Код скопирован в буфер обмена для ручной отправки!");
         }
     }
 }
