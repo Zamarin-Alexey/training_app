@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateMetaThemeColor(isDark); 
     renderApp(); 
     updateTimerUI();
-    initSwipeToDelete(); // Инициализация логики свайпов
+    initSwipeToDelete(); 
 });
 
 
@@ -149,7 +149,6 @@ function renderNav() {
     }
 }
 
-// Плавный переход с View Transitions API
 function switchTab(tabId) {
     if (navigator.vibrate) navigator.vibrate(20); 
     const updateDOM = () => {
@@ -273,7 +272,7 @@ function renderView() {
                                            class="w-full py-2.5 pl-3 pr-10 rounded-lg text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 placeholder-slate-300 dark:placeholder-slate-500 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all shadow-sm disabled:opacity-50">
                                     <span class="absolute right-3 top-2.5 text-xs font-semibold text-slate-400 dark:text-slate-500 pointer-events-none">${unit}</span>
                                 </div>
-                                <button onclick="openHistory('${ex.id}', '${currentVar.id}', '${currentVar.name.replace(/'/g, "\\'")}', '${unit}')" class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors shadow-sm focus:outline-none">
+                                <button onclick="openHistory('${ex.id}', '${currentVar.id}', '${currentVar.name.replace(/'/g, "\\'")}', '${unit}', '${currentVar.target}')" class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 active:bg-slate-100 dark:active:bg-slate-700 transition-colors shadow-sm focus:outline-none">
                                     ${historyIcon}
                                 </button>
                             </div>
@@ -469,8 +468,8 @@ function deleteExercise() {
 
 /* ----- ИСТОРИЯ И ГРАФИКИ ----- */
 let currentHistoryContext = null; 
-function openHistory(exId, variantId, exName, unit) {
-    if (navigator.vibrate) navigator.vibrate(20); currentHistoryContext = { exId, variantId, exName, unit };
+function openHistory(exId, variantId, exName, unit, targetValue) {
+    if (navigator.vibrate) navigator.vibrate(20); currentHistoryContext = { exId, variantId, exName, unit, targetValue };
     const data = Storage.load(exId, variantId); const listContainer = document.getElementById('history-list');
     document.getElementById('history-title').innerText = exName; listContainer.innerHTML = '';
     
@@ -478,18 +477,20 @@ function openHistory(exId, variantId, exName, unit) {
     if (miniHistoryChartInstance) { miniHistoryChartInstance.destroy(); miniHistoryChartInstance = null; }
 
     if (!data.history || data.history.length === 0) { 
-        listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый результат!</div>'; 
+        listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm fade-in">История пуста. Запиши свой первый результат!</div>'; 
         chartContainer.classList.add('hidden');
     } else {
-        // Отрисовка свайп-списка без кнопки из режима редактирования
+        // Отрисовка свайп-списка (ОБНОВЛЕН ДИЗАЙН КНОПКИ УДАЛЕНИЯ)
         [...data.history].reverse().forEach((item, displayIndex) => {
             const realIndex = data.history.length - 1 - displayIndex;
             listContainer.insertAdjacentHTML('beforeend', `
-                <div class="swipe-container border-b border-slate-100 dark:border-slate-700/50 last:border-0" data-index="${realIndex}">
-                    <div class="swipe-action" onclick="deleteHistoryItem(${realIndex})">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <div class="swipe-container border-b border-slate-100 dark:border-slate-700/50 last:border-0 rounded-xl" data-index="${realIndex}">
+                    <div class="swipe-action pr-3" onclick="deleteHistoryItem(${realIndex})">
+                        <div class="w-12 h-12 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </div>
                     </div>
-                    <div class="swipe-content bg-white dark:bg-slate-800 flex justify-between items-center py-3 px-1" oncontextmenu="return false;">
+                    <div class="swipe-content bg-white dark:bg-slate-800 flex justify-between items-center py-3.5 px-2" oncontextmenu="return false;">
                         <span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span>
                         <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit}</span>
                     </div>
@@ -501,27 +502,52 @@ function openHistory(exId, variantId, exName, unit) {
             chartContainer.classList.remove('hidden');
             const ctx = document.getElementById('miniHistoryChart').getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
+            
+            // Данные для графика
             const labels = data.history.map(h => h.date.slice(0, 5));
             const weights = data.history.map(h => parseFloat(h.weight) || 0);
+            
+            // Генерируем массив цели (линия)
+            const targetVal = parseFloat(targetValue) || 0;
+            const targetData = new Array(data.history.length).fill(targetVal);
             
             Chart.defaults.font.family = "'Inter', sans-serif";
             miniHistoryChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        data: weights, borderColor: isDark ? '#2dd4bf' : '#0d9488',
-                        backgroundColor: isDark ? 'rgba(45, 212, 191, 0.1)' : 'rgba(13, 148, 136, 0.1)',
-                        borderWidth: 3, pointRadius: 4, pointBackgroundColor: isDark ? '#fff' : '#0f172a',
-                        fill: true, tension: 0.3
-                    }]
+                    datasets: [
+                        {
+                            label: 'Рабочий вес',
+                            data: weights, borderColor: isDark ? '#2dd4bf' : '#0d9488',
+                            backgroundColor: isDark ? 'rgba(45, 212, 191, 0.05)' : 'rgba(13, 148, 136, 0.05)',
+                            borderWidth: 3, pointRadius: 4, pointBackgroundColor: isDark ? '#fff' : '#0f172a',
+                            fill: true, tension: 0.3, z: 2
+                        },
+                        // НОВАЯ ЛИНИЯ ЦЕЛИ (Пунктирная)
+                        {
+                            label: 'Цель',
+                            data: targetData, 
+                            borderColor: isDark ? '#475569' : '#cbd5e1', // Slate color
+                            borderWidth: 2,
+                            borderDash: [6, 4], // Пунктир
+                            pointRadius: 0, // Без точек
+                            fill: false,
+                            tension: 0,
+                            z: 1
+                        }
+                    ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false }, tooltip: { enabled: true, displayColors: false } },
                     scales: {
                         x: { display: false },
-                        y: { border: {display: false}, grid: { display: false }, ticks: { color: isDark ? '#94a3b8' : '#64748b', maxTicksLimit: 3 } }
+                        y: { 
+                            border: {display: false}, 
+                            grid: { color: isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.5)' }, 
+                            ticks: { color: isDark ? '#94a3b8' : '#64748b', maxTicksLimit: 3, font: {size: 10} } 
+                        }
                     },
                     layout: { padding: { top: 5, bottom: 5 } }
                 }
@@ -534,7 +560,6 @@ function openHistory(exId, variantId, exName, unit) {
     modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
 }
 
-// Глобальные обработчики для Swipe-to-delete
 function initSwipeToDelete() {
     let touchStartX = 0;
     let currentSwipeEl = null;
@@ -547,7 +572,6 @@ function initSwipeToDelete() {
         }
         touchStartX = e.touches[0].clientX;
         currentSwipeEl = swipeContent;
-        // Закрываем другие открытые свайпы
         document.querySelectorAll('.swipe-content').forEach(el => {
             if(el !== currentSwipeEl) el.style.transform = 'translateX(0)';
         });
@@ -557,7 +581,7 @@ function initSwipeToDelete() {
         if (!currentSwipeEl) return;
         const touchX = e.touches[0].clientX;
         const deltaX = touchX - touchStartX;
-        if (deltaX < 0 && deltaX > -100) { // Движение влево
+        if (deltaX < 0 && deltaX > -120) { 
             currentSwipeEl.style.transform = `translateX(${deltaX}px)`;
             currentSwipeEl.style.transition = 'none'; 
         }
@@ -569,9 +593,9 @@ function initSwipeToDelete() {
         const deltaX = touchEndX - touchStartX;
         
         currentSwipeEl.style.transition = 'transform 0.2s ease-out';
-        if (deltaX < -40) { // Если свайпнули достаточно далеко, фиксируем открытие
-            currentSwipeEl.style.transform = 'translateX(-80px)';
-        } else { // Иначе возвращаем на место
+        if (deltaX < -60) { 
+            currentSwipeEl.style.transform = 'translateX(-90px)'; // Фиксируем выезд кнопки
+        } else { 
             currentSwipeEl.style.transform = 'translateX(0)';
         }
         currentSwipeEl = null;
@@ -580,17 +604,16 @@ function initSwipeToDelete() {
 
 function deleteHistoryItem(realIndex) {
     if(!confirm("Удалить эту запись?")) return;
-    const { exId, variantId, exName, unit } = currentHistoryContext; const key = Storage.getKey(exId, variantId);
+    const { exId, variantId, exName, unit, targetValue } = currentHistoryContext; const key = Storage.getKey(exId, variantId);
     let data = JSON.parse(localStorage.getItem(key)); data.history.splice(realIndex, 1);
     if(data.history.length > 0) data.weight = data.history[data.history.length - 1].weight; else data.weight = "";
     localStorage.setItem(key, JSON.stringify(data));
-    openHistory(exId, variantId, exName, unit); renderView(); if (myChartInstance && currentTab === 'targets') renderChart();
+    openHistory(exId, variantId, exName, unit, targetValue); renderView(); if (myChartInstance && currentTab === 'targets') renderChart();
 }
 
 function closeHistory() {
     const modal = document.getElementById('history-modal'); const modalContent = document.getElementById('history-modal-content');
     modal.classList.add('opacity-0'); modalContent.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); }, 300); currentHistoryContext = null;
-    // Сбрасываем свайпы при закрытии
     document.querySelectorAll('.swipe-content').forEach(el => el.style.transform = 'translateX(0)');
 }
 
@@ -649,9 +672,10 @@ function renderTargetsHTML(container) {
                 </div>
             </div>
             
-            <div class="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700 flex justify-center">
-                <button onclick="factoryReset()" class="px-6 py-2.5 text-xs font-bold text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full transition-colors">
-                    Сброс настроек (Очистить всё)
+            <div class="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
+                <button onclick="factoryReset()" class="w-full py-3.5 px-5 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-sm font-black rounded-xl hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors shadow-sm border border-rose-200 dark:border-rose-800 flex items-center justify-center gap-2.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+                    Очистить все данные приложения
                 </button>
             </div>
         </div>
@@ -756,55 +780,26 @@ function applyImportedData(importedData) {
 }
 function updateBackupTimer() { localStorage.setItem('last_backup_date', Date.now()); const w = document.getElementById('backup-warning'); if(w) w.classList.add('hidden'); }
 
-// Интеграция Web Share API с улучшенной обработкой ошибок
 async function shareData() {
     const obj = gatherAllData();
-    if (Object.keys(obj).length === 0) {
-        alert("Пока нет данных для отправки.");
-        return;
-    }
+    if(Object.keys(obj).length === 0) return;
     const jsonStr = JSON.stringify(obj);
-
-    if (!navigator.share) {
-        copyDataToClipboard();
-        alert("Шеринг не поддерживается. Твой код скопирован в буфер обмена!");
-        return;
-    }
-
-    // ХИТРОСТЬ: Маскируем JSON под обычный текстовый файл, чтобы пройти фильтры Android
+    if (!navigator.share) { copyDataToClipboard(); alert("Шеринг не поддерживается. Код скопирован в буфер обмена!"); return; }
     const file = new File([jsonStr], "workout_backup.txt", { type: "text/plain" });
-    
     try {
-        // ПЛАН А: Пробуем отправить как файл
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ 
-                title: 'Программа тренировок', 
-                text: 'Мой бэкап из приложения Тренировки.', 
-                files: [file] 
-            });
-            updateBackupTimer();
-            return; // Успех! Выходим из функции.
+            await navigator.share({ title: 'Программа тренировок', text: 'Мой бэкап из приложения Тренировки.', files: [file] });
+            updateBackupTimer(); return; 
         }
     } catch (err) {
-        if (err.name === 'AbortError') return; // Юзер сам отменил отправку (смахнул шторку)
-        console.warn("Шеринг файла заблокирован ОС (Permission denied). Переходим к Плану Б...", err);
-        // Ошибку игнорируем, код пойдет дальше к Плану Б
+        if (err.name === 'AbortError') return;
+        console.warn("Шеринг файла заблокирован ОС.", err);
     }
-
     try {
-        // ПЛАН Б: Если Android заблокировал файл, отправляем просто как текст!
-        // В Telegram это придет как одно большое сообщение, которое друг сможет скопировать и нажать "Вставить"
-        await navigator.share({ 
-            title: 'Программа тренировок', 
-            text: jsonStr 
-        });
+        await navigator.share({ title: 'Программа тренировок', text: jsonStr });
         updateBackupTimer();
     } catch (err) {
-        if (err.name !== 'AbortError') {
-            console.error(err);
-            copyDataToClipboard(); 
-            alert("Система полностью заблокировала шеринг. Код скопирован в буфер обмена для ручной отправки!");
-        }
+        if (err.name !== 'AbortError') { console.error(err); copyDataToClipboard(); alert("Система полностью заблокировала шеринг. Код скопирован в буфер обмена!"); }
     }
 }
 
@@ -853,7 +848,6 @@ function saveTimerEdit() {
     updateTimerUI(); 
 }
 
-// Запуск Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')

@@ -55,23 +55,24 @@ input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-i
     animation-duration: 0.25s;
 }
 
-/* Свайп для удаления в истории */
+/* Свайп для удаления в истории (ОБНОВЛЕНО) */
 .swipe-container {
     position: relative;
     overflow: hidden;
-    background-color: #ef4444; /* Красный фон при свайпе */
+    /* Убрали красный фон */
 }
 .swipe-action {
     position: absolute;
     top: 0;
     right: 0;
     height: 100%;
-    width: 80px;
+    width: 90px; /* Немного шире для отступов */
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     z-index: 1;
+    /* Убрали фон здесь */
 }
 .swipe-content {
     position: relative;
@@ -79,6 +80,6 @@ input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-i
     background: inherit;
     transition: transform 0.2s ease-out;
     width: 100%;
-    touch-action: pan-y; /* Разрешаем браузеру скроллить вверх-вниз, но перехватываем лево-право */
+    touch-action: pan-y;
     will-change: transform;
 }
