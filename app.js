@@ -1,3 +1,5 @@
+/* global Chart, Sortable */
+
 /* ----- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----- */
 const VAR_LABELS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К'];
 const defaultAppV2 = {
@@ -52,8 +54,7 @@ const Storage = {
 
 let currentTab = appData.days.length > 0 ? appData.days[0].id : 'targets';
 let isEditMode = false; let daySortable, exSortable, varSortable;
-let myChartInstance = null;
-let miniHistoryChartInstance = null; // Инстанс мини-графика
+let myChartInstance = null; let miniHistoryChartInstance = null;
 
 
 /* ----- ТЕМА И ИНИЦИАЛИЗАЦИЯ ----- */
@@ -75,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateMetaThemeColor(isDark); 
     renderApp(); 
     updateTimerUI();
+    initSwipeToDelete(); // Инициализация логики свайпов
 });
 
 
@@ -147,13 +149,19 @@ function renderNav() {
     }
 }
 
+// Плавный переход с View Transitions API
 function switchTab(tabId) {
-    if (navigator.vibrate) navigator.vibrate(20); currentTab = tabId; renderApp();
-    const activeBtn = document.querySelector('.tab-active');
-    if(activeBtn) {
-        const navContainer = document.getElementById('main-nav');
-        navContainer.scrollTo({ left: activeBtn.parentElement.offsetLeft + (activeBtn.offsetWidth / 2) - (navContainer.offsetWidth / 2), behavior: 'smooth' });
-    }
+    if (navigator.vibrate) navigator.vibrate(20); 
+    const updateDOM = () => {
+        currentTab = tabId; renderApp();
+        const activeBtn = document.querySelector('.tab-active');
+        if(activeBtn) {
+            const navContainer = document.getElementById('main-nav');
+            navContainer.scrollTo({ left: activeBtn.parentElement.offsetLeft + (activeBtn.offsetWidth / 2) - (navContainer.offsetWidth / 2), behavior: 'smooth' });
+        }
+    };
+    if (document.startViewTransition) document.startViewTransition(updateDOM);
+    else updateDOM();
 }
 
 window.setAllVariants = function(dayId, targetIndex) {
@@ -366,7 +374,6 @@ function renderDraftModal() {
         const isCharted = chartConfig.includes(configKey);
         const varLetter = VAR_LABELS[vIndex] || (vIndex + 1);
 
-        // Поле отдыха теперь обычный текстовый инпут без маски
         container.insertAdjacentHTML('beforeend', `
             <div class="variant-block bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 relative shadow-sm">
                 <div class="var-drag-handle absolute top-3 right-3 text-slate-400 cursor-grab active:cursor-grabbing touch-none p-1 bg-slate-100 dark:bg-slate-700 rounded">
@@ -467,7 +474,6 @@ function openHistory(exId, variantId, exName, unit) {
     const data = Storage.load(exId, variantId); const listContainer = document.getElementById('history-list');
     document.getElementById('history-title').innerText = exName; listContainer.innerHTML = '';
     
-    // Рендер мини-графика в модалке
     const chartContainer = document.getElementById('history-chart-container');
     if (miniHistoryChartInstance) { miniHistoryChartInstance.destroy(); miniHistoryChartInstance = null; }
 
@@ -475,19 +481,27 @@ function openHistory(exId, variantId, exName, unit) {
         listContainer.innerHTML = '<div class="text-center py-6 text-slate-400 dark:text-slate-500 text-sm">История пуста. Запиши свой первый результат!</div>'; 
         chartContainer.classList.add('hidden');
     } else {
-        // Отрисовка списка
+        // Отрисовка свайп-списка без кнопки из режима редактирования
         [...data.history].reverse().forEach((item, displayIndex) => {
             const realIndex = data.history.length - 1 - displayIndex;
-            const deleteBtnHtml = isEditMode ? `<button onclick="deleteHistoryItem(${realIndex})" class="ml-3 p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors focus:outline-none"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>` : '';
-            listContainer.insertAdjacentHTML('beforeend', `<div class="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-700/50 last:border-0"><span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span><div class="flex items-center"><span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit}</span>${deleteBtnHtml}</div></div>`);
+            listContainer.insertAdjacentHTML('beforeend', `
+                <div class="swipe-container border-b border-slate-100 dark:border-slate-700/50 last:border-0" data-index="${realIndex}">
+                    <div class="swipe-action" onclick="deleteHistoryItem(${realIndex})">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </div>
+                    <div class="swipe-content bg-white dark:bg-slate-800 flex justify-between items-center py-3 px-1" oncontextmenu="return false;">
+                        <span class="text-sm text-slate-500 dark:text-slate-400">${item.date}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">${item.weight} ${unit}</span>
+                    </div>
+                </div>
+            `);
         });
 
-        // Отрисовка графика
         if (data.history.length > 1) {
             chartContainer.classList.remove('hidden');
             const ctx = document.getElementById('miniHistoryChart').getContext('2d');
             const isDark = document.documentElement.classList.contains('dark');
-            const labels = data.history.map(h => h.date.slice(0, 5)); // Короткая дата (ДД.ММ)
+            const labels = data.history.map(h => h.date.slice(0, 5));
             const weights = data.history.map(h => parseFloat(h.weight) || 0);
             
             Chart.defaults.font.family = "'Inter', sans-serif";
@@ -506,7 +520,7 @@ function openHistory(exId, variantId, exName, unit) {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false }, tooltip: { enabled: true, displayColors: false } },
                     scales: {
-                        x: { display: false }, // Скрываем ось Х для минимализма
+                        x: { display: false },
                         y: { border: {display: false}, grid: { display: false }, ticks: { color: isDark ? '#94a3b8' : '#64748b', maxTicksLimit: 3 } }
                     },
                     layout: { padding: { top: 5, bottom: 5 } }
@@ -518,6 +532,50 @@ function openHistory(exId, variantId, exName, unit) {
     }
     const modal = document.getElementById('history-modal'); const modalContent = document.getElementById('history-modal-content');
     modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
+}
+
+// Глобальные обработчики для Swipe-to-delete
+function initSwipeToDelete() {
+    let touchStartX = 0;
+    let currentSwipeEl = null;
+
+    document.addEventListener('touchstart', e => {
+        const swipeContent = e.target.closest('.swipe-content');
+        if (!swipeContent) {
+            document.querySelectorAll('.swipe-content').forEach(el => el.style.transform = 'translateX(0)');
+            return;
+        }
+        touchStartX = e.touches[0].clientX;
+        currentSwipeEl = swipeContent;
+        // Закрываем другие открытые свайпы
+        document.querySelectorAll('.swipe-content').forEach(el => {
+            if(el !== currentSwipeEl) el.style.transform = 'translateX(0)';
+        });
+    }, {passive: true});
+
+    document.addEventListener('touchmove', e => {
+        if (!currentSwipeEl) return;
+        const touchX = e.touches[0].clientX;
+        const deltaX = touchX - touchStartX;
+        if (deltaX < 0 && deltaX > -100) { // Движение влево
+            currentSwipeEl.style.transform = `translateX(${deltaX}px)`;
+            currentSwipeEl.style.transition = 'none'; 
+        }
+    }, {passive: true});
+
+    document.addEventListener('touchend', e => {
+        if (!currentSwipeEl) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const deltaX = touchEndX - touchStartX;
+        
+        currentSwipeEl.style.transition = 'transform 0.2s ease-out';
+        if (deltaX < -40) { // Если свайпнули достаточно далеко, фиксируем открытие
+            currentSwipeEl.style.transform = 'translateX(-80px)';
+        } else { // Иначе возвращаем на место
+            currentSwipeEl.style.transform = 'translateX(0)';
+        }
+        currentSwipeEl = null;
+    });
 }
 
 function deleteHistoryItem(realIndex) {
@@ -532,6 +590,8 @@ function deleteHistoryItem(realIndex) {
 function closeHistory() {
     const modal = document.getElementById('history-modal'); const modalContent = document.getElementById('history-modal-content');
     modal.classList.add('opacity-0'); modalContent.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); }, 300); currentHistoryContext = null;
+    // Сбрасываем свайпы при закрытии
+    document.querySelectorAll('.swipe-content').forEach(el => el.style.transform = 'translateX(0)');
 }
 
 function renderTargetsHTML(container) {
@@ -566,11 +626,14 @@ function renderTargetsHTML(container) {
                 <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Резервное копирование</h4>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">Данные сохраняются автоматически. Делайте бэкап, чтобы не потерять их при очистке кэша браузера.</p>
                 <div class="flex flex-col gap-3">
-                    <div class="flex gap-3">
-                        <button onclick="copyDataToClipboard()" class="flex-1 py-2.5 bg-slate-800 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <button onclick="shareData()" class="col-span-2 md:col-span-1 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg> Поделиться
+                        </button>
+                        <button onclick="copyDataToClipboard()" class="py-2.5 bg-slate-800 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg> Код
                         </button>
-                        <button onclick="importDataFromClipboard()" class="flex-1 py-2.5 bg-white dark:bg-slate-700 hover:bg-slate-50 border border-slate-300 dark:border-slate-600 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
+                        <button onclick="importDataFromClipboard()" class="py-2.5 bg-white dark:bg-slate-700 hover:bg-slate-50 border border-slate-300 dark:border-slate-600 text-sm font-bold rounded-lg transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm touch-manipulation">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg> Вставить
                         </button>
                     </div>
@@ -684,37 +747,46 @@ function renderChart() {
 
 /* ----- БЭКАПЫ И ТАЙМЕР ----- */
 function gatherAllData() { const exportObj = {}; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); if (key.startsWith('freeride_') || key.includes('app_data_v2') || key === 'chart_config' || key === 'timer_last_setting' || key === 'exercise_state_v2') { exportObj[key] = JSON.parse(localStorage.getItem(key) || 'null'); } } return exportObj; }
-
-// Усиленная валидация импорта
 function applyImportedData(importedData) { 
     if (!importedData || typeof importedData !== 'object' || (!importedData['app_data_v2'] && !importedData['chart_config'])) {
-        alert("Ошибка: Неверный формат файла или кода бэкапа. Данные не восстановлены.");
-        return;
+        alert("Ошибка: Неверный формат файла или кода бэкапа. Данные не восстановлены."); return;
     }
-    let count = 0; 
-    for (const key in importedData) { 
-        if (importedData[key]) { localStorage.setItem(key, JSON.stringify(importedData[key])); count++; } 
-    } 
+    let count = 0; for (const key in importedData) { if (importedData[key]) { localStorage.setItem(key, JSON.stringify(importedData[key])); count++; } } 
     if (count > 0) { alert(`Восстановлено записей: ${count}!`); location.reload(); } 
 }
-
 function updateBackupTimer() { localStorage.setItem('last_backup_date', Date.now()); const w = document.getElementById('backup-warning'); if(w) w.classList.add('hidden'); }
 
-// Имя файла с датой
-function exportData() { 
-    const obj = gatherAllData(); 
-    if(Object.keys(obj).length===0) return; 
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj)); 
-    const a = document.createElement('a'); 
-    a.href = dataStr; 
+// Интеграция Web Share API
+async function shareData() {
+    const obj = gatherAllData();
+    if(Object.keys(obj).length === 0) return;
+    const jsonStr = JSON.stringify(obj);
     
+    try {
+        const file = new File([jsonStr], "workout_backup.json", { type: "application/json" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ title: 'Тренировки бэкап', text: 'Моя программа и результаты из приложения Тренировки.', files: [file] });
+        } else if (navigator.share) {
+            await navigator.share({ title: 'Тренировки бэкап', text: jsonStr });
+        } else {
+            copyDataToClipboard();
+            alert("Шеринг не поддерживается. Код скопирован в буфер обмена.");
+        }
+        updateBackupTimer();
+    } catch (err) {
+        console.log('Шеринг отменен или ошибка', err);
+    }
+}
+
+function exportData() { 
+    const obj = gatherAllData(); if(Object.keys(obj).length===0) return; 
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj)); 
+    const a = document.createElement('a'); a.href = dataStr; 
     const dateObj = new Date();
     const dateString = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
     a.download = `workout_backup_${dateString}.json`; 
-    
     document.body.appendChild(a); a.click(); a.remove(); updateBackupTimer(); 
 }
-
 function importData(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = e => { try { applyImportedData(JSON.parse(e.target.result)); } catch(err) { alert("Ошибка чтения файла."); } }; r.readAsText(f); e.target.value = ''; }
 function copyDataToClipboard() { navigator.clipboard.writeText(JSON.stringify(gatherAllData())).then(() => { alert("Код скопирован!"); updateBackupTimer(); }).catch(() => alert("Не удалось скопировать.")); }
 async function importDataFromClipboard() { try { const t = await navigator.clipboard.readText(); if(!t.startsWith('{')) return alert("Нет кода в буфере."); applyImportedData(JSON.parse(t)); } catch(err) { const m = prompt("Вставьте код:"); if(m) applyImportedData(JSON.parse(m)); } }
@@ -736,7 +808,6 @@ function stopTimer() { if(navigator.vibrate)navigator.vibrate(20); pauseTimer();
 function toggleTimer() { if(navigator.vibrate)navigator.vibrate(20); initAudio(); const c=document.getElementById('timer-controls'); isTimerVisible=!isTimerVisible; if(isTimerVisible){c.classList.remove('hidden');if(timerRemaining===0)timerRemaining=lastTimerSetting;updateTimerUI();}else{c.classList.add('hidden');document.getElementById('timer-toggle-btn').classList.remove('timer-done');} }
 function enableTimerEdit() { pauseTimer(); document.getElementById('timer-display').classList.add('hidden'); document.getElementById('timer-edit-container').classList.remove('hidden'); const i=document.getElementById('timer-input-combined'); i.value=formatTime(timerRemaining); i.focus(); setTimeout(()=>i.setSelectionRange(0,i.value.length),10); }
 
-// Маска работает ТОЛЬКО для плавающего таймера
 function handleCombinedInput(el) { let v=el.value.replace(/\D/g,''); if(v.length>4)v=v.slice(-4); if(v.length===0){el.value="";return;} const p=v.padStart(4,'0'); el.value=`${p.slice(0,2)}:${p.slice(2,4)}`; }
 
 function saveTimerEdit() { 
